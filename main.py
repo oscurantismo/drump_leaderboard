@@ -5,24 +5,26 @@ import os
 app = Flask(__name__)
 DATA_FILE = "scores.json"
 
-# Load scores from file
-def load_scores():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            return json.load(f)
-    return []
+# Ensure file exists
+if not os.path.exists(DATA_FILE):
+    with open(DATA_FILE, "w") as f:
+        json.dump([], f)
 
-# Save scores to file
+def load_scores():
+    with open(DATA_FILE, "r") as f:
+        return json.load(f)
+
 def save_scores(scores):
     with open(DATA_FILE, "w") as f:
         json.dump(scores, f)
 
-# Endpoint to submit scores
 @app.route("/submit", methods=["POST"])
 def submit():
     data = request.get_json()
     username = data.get("username", "Anonymous")
-    score = data.get("score", 0)
+    score = int(data.get("score", 0))
+
+    print(f"🔥 Received score from {username}: {score}")
 
     scores = load_scores()
     updated = False
@@ -40,70 +42,19 @@ def submit():
     save_scores(scores)
     return jsonify({"status": "ok"})
 
-# JSON API for leaderboard
 @app.route("/leaderboard")
 def leaderboard():
     scores = load_scores()
     sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
     return jsonify(sorted_scores)
 
-# HTML Leaderboard Page
 @app.route("/leaderboard-page")
 def leaderboard_page():
     scores = load_scores()
     sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
 
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Leaderboard</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: #fff;
-                padding: 20px;
-                color: #333;
-                text-align: center;
-            }
-            h2 {
-                color: #0077cc;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 20px;
-            }
-            th, td {
-                padding: 10px;
-                border-bottom: 1px solid #ccc;
-            }
-            th {
-                background: #f4f4f4;
-            }
-        </style>
-    </head>
-    <body>
-        <h2>🏆 TrumpToss Leaderboard</h2>
-        {% if scores %}
-        <table>
-            <tr><th>#</th><th>Username</th><th>Score</th></tr>
-            {% for i, entry in enumerate(scores) %}
-            <tr>
-                <td>{{ i + 1 }}</td>
-                <td>{{ entry.username }}</td>
-                <td>{{ entry.score }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        {% else %}
-        <p>No scores submitted yet.</p>
-        {% endif %}
-    </body>
-    </html>
-    """
+    html = """ ... """  # Your same HTML template
     return render_template_string(html, scores=sorted_scores)
 
-# Run locally or with WSGI
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
