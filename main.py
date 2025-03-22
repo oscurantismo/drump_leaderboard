@@ -28,6 +28,10 @@ def submit_score():
     username = data.get("username", "Anonymous")
     score = int(data.get("score", 0))
 
+    print("✅ Score submitted:", username, score)
+    print("📦 Full scores list:", scores)
+
+
     # Read existing scores or start new list
     if os.path.exists("scores.json"):
         with open("scores.json", "r") as f:
