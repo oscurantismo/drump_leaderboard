@@ -140,5 +140,28 @@ def debug_scores():
     except Exception as e:
         return {"error": str(e)}
 
+@app.route("/logs")
+def logs():
+    if os.path.exists(SCORES_PATH):
+        try:
+            with open(SCORES_PATH, "r") as f:
+                scores = json.load(f)
+            return {
+                "message": "✅ Scores loaded successfully.",
+                "count": len(scores),
+                "scores": scores
+            }
+        except Exception as e:
+            return {
+                "error": "⚠️ Failed to read scores.json.",
+                "details": str(e)
+            }
+    else:
+        return {
+            "error": "📁 scores.json does not exist yet.",
+            "tip": "Try punching Trump at least once in-game to generate it."
+        }
+
+
 if __name__ == "__main__":
     app.run(debug=True)
