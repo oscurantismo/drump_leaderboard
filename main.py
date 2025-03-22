@@ -19,83 +19,107 @@ def save_scores(scores):
     with open(DATA_FILE, "w") as f:
         json.dump(scores, f)
 
+import json
+import os
+
 @app.route("/submit", methods=["POST"])
 def submit_score():
     data = request.get_json()
     username = data.get("username", "Anonymous")
     score = int(data.get("score", 0))
 
-    scores = load_scores()
-    found = False
+    # Read existing scores or start new list
+    if os.path.exists("scores.json"):
+        with open("scores.json", "r") as f:
+            scores = json.load(f)
+    else:
+        scores = []
+
+    # Update score if user exists or add new
     for entry in scores:
         if entry["username"] == username:
             if score > entry["score"]:
                 entry["score"] = score
-            found = True
             break
-
-    if not found:
+    else:
         scores.append({"username": username, "score": score})
 
-    scores.sort(key=lambda x: x["score"], reverse=True)
-    save_scores(scores)
-    return jsonify({"status": "success"}), 200
+    with open("scores.json", "w") as f:
+        json.dump(scores, f)
+
+    return {"success": True}
+
 
 @app.route("/leaderboard-page")
 def leaderboard_page():
-    return """
+    try:
+        with open("scores.json", "r") as f:
+            scores = json.load(f)
+    except:
+        scores = []
+
+    # Sort scores from highest to lowest
+    scores = sorted(scores, key=lambda x: x["score"], reverse=True)
+
+    # Limit to top 20 players
+    scores = scores[:20]
+
+    html = """
     <html>
     <head>
         <title>TrumpToss Leaderboard</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style>
             body {
-                font-family: 'Segoe UI', sans-serif;
-                background: #f1f1f1;
-                color: #333;
-                padding: 2rem;
+                font-family: Arial, sans-serif;
                 text-align: center;
+                padding: 40px;
+                background-color: #f2f2f2;
             }
             h1 {
-                font-size: 2em;
-                margin-bottom: 1rem;
-                color: #222;
+                font-size: 28px;
+                color: #333;
             }
-            .entry {
-                background: #fff;
-                padding: 12px 20px;
-                margin: 8px auto;
-                width: 100%;
-                max-width: 400px;
-                border-radius: 8px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                font-size: 1.1rem;
+            table {
+                margin: 20px auto;
+                border-collapse: collapse;
+                width: 90%%;
+                max-width: 500px;
+                background-color: #fff;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            th, td {
+                padding: 12px;
+                border-bottom: 1px solid #ddd;
+            }
+            th {
+                background-color: #0077cc;
+                color: white;
+            }
+            tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+            tr:hover {
+                background-color: #e1f5fe;
             }
         </style>
     </head>
     <body>
-        <h1>🏆 TrumpToss Leaderboard</h1>
-        <div id="board">Loading...</div>
-        <script>
-            fetch("/leaderboard")
-                .then(res => res.json())
-                .then(data => {
-                    const board = document.getElementById("board");
-                    if (!data.length) {
-                        board.innerHTML = "<p>No scores yet!</p>";
-                        return;
-                    }
-                    board.innerHTML = data.map((e, i) => (
-                        `<div class='entry'>${i + 1}. @${e.username} – ${e.score} punches</div>`
-                    )).join('');
-                })
-                .catch(() => {
-                    document.getElementById("board").innerText = "Failed to load leaderboard.";
-                });
-        </script>
+        <h1>TrumpToss Leaderboard</h1>
+        <table>
+            <tr><th>Rank</th><th>Player</th><th>Punches</th></tr>
+    """
+
+    for i, entry in enumerate(scores):
+        username = entry.get("username", "Anonymous")
+        score = entry.get("score", 0)
+        html += f"<tr><td>{i + 1}</td><td>{username}</td><td>{score}</td></tr>"
+
+    html += """
+        </table>
     </body>
     </html>
     """
+    return html
 
 
 if __name__ == "__main__":
