@@ -6,6 +6,8 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+SCORES_PATH = "/tmp/scores.json"
+
 @app.after_request
 def allow_iframe(response):
     response.headers['X-Frame-Options'] = 'ALLOWALL'
@@ -25,43 +27,40 @@ def submit_score():
 
     scores = []
 
-    if os.path.exists("scores.json"):
+    if os.path.exists(SCORES_PATH):
         try:
-            with open("scores.json", "r") as f:
+            with open(SCORES_PATH, "r") as f:
                 scores = json.load(f)
         except Exception as e:
             print("⚠️ Failed to load scores.json:", e)
             scores = []
     else:
-        print("🆕 Creating new scores.json")
+        print("🆕 Creating new scores.json at /tmp")
 
-    # Update existing or add new
     updated = False
     for entry in scores:
         if entry["username"] == username:
             if score > entry["score"]:
                 entry["score"] = score
-                print("🔁 Updated existing score")
             updated = True
             break
 
     if not updated:
         scores.append({"username": username, "score": score})
-        print("➕ Added new score")
 
     try:
-        with open("scores.json", "w") as f:
+        with open(SCORES_PATH, "w") as f:
             json.dump(scores, f)
-        print("✅ scores.json updated successfully")
+        print("✅ scores.json written to /tmp")
     except Exception as e:
-        print("❌ Failed to write scores.json:", e)
+        print("❌ Failed to write /tmp/scores.json:", e)
 
     return {"success": True}
 
 @app.route("/leaderboard-page")
 def leaderboard_page():
     try:
-        with open("scores.json", "r") as f:
+        with open(SCORES_PATH, "r") as f:
             scores = json.load(f)
     except:
         scores = []
@@ -129,7 +128,7 @@ def leaderboard_page():
 @app.route("/debug-scores")
 def debug_scores():
     try:
-        with open("scores.json", "r") as f:
+        with open(SCORES_PATH, "r") as f:
             scores = json.load(f)
         return {"scores": scores}
     except Exception as e:
