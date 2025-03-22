@@ -59,11 +59,17 @@ def submit_score():
 
 @app.route("/leaderboard-page")
 def leaderboard_page():
-    try:
-        with open(SCORES_PATH, "r") as f:
-            scores = json.load(f)
-    except:
+    if os.path.exists(SCORES_PATH):
+        try:
+            with open(SCORES_PATH, "r") as f:
+                scores = json.load(f)
+        except Exception as e:
+            print("⚠️ Could not load leaderboard:", e)
+            scores = []
+    else:
+        print("📁 No scores.json found yet.")
         scores = []
+
 
     scores = sorted(scores, key=lambda x: x["score"], reverse=True)
     scores = scores[:20]
