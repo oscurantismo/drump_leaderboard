@@ -28,28 +28,40 @@ def submit_score():
     username = data.get("username", "Anonymous")
     score = int(data.get("score", 0))
 
-    print("✅ Score submitted:", username, score)
-    print("📦 Full scores list:", scores)
+    print(f"📩 Received score from {username}: {score}")
 
+    scores = []
 
-    # Read existing scores or start new list
     if os.path.exists("scores.json"):
-        with open("scores.json", "r") as f:
-            scores = json.load(f)
+        try:
+            with open("scores.json", "r") as f:
+                scores = json.load(f)
+        except Exception as e:
+            print("⚠️ Failed to load scores.json:", e)
+            scores = []
     else:
-        scores = []
+        print("🆕 Creating new scores.json")
 
-    # Update score if user exists or add new
+    # Update existing or append new
+    updated = False
     for entry in scores:
         if entry["username"] == username:
             if score > entry["score"]:
                 entry["score"] = score
+                print("🔁 Updated existing score")
+            updated = True
             break
-    else:
-        scores.append({"username": username, "score": score})
 
-    with open("scores.json", "w") as f:
-        json.dump(scores, f)
+    if not updated:
+        scores.append({"username": username, "score": score})
+        print("➕ Added new score")
+
+    try:
+        with open("scores.json", "w") as f:
+            json.dump(scores, f)
+        print("✅ scores.json updated successfully")
+    except Exception as e:
+        print("❌ Failed to write scores.json:", e)
 
     return {"success": True}
 
