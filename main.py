@@ -120,9 +120,9 @@ def leaderboard_page():
         {% if scores %}
         <table>
             <tr><th>#</th><th>Username</th><th>Score</th></tr>
-            {% for i, entry in enumerate(scores) %}
+            {% for entry in scores %}
             <tr>
-                <td>{{ i + 1 }}</td>
+                <td>{{ loop.index }}</td>
                 <td>{{ entry.username }}</td>
                 <td>{{ entry.score }}</td>
             </tr>
@@ -134,8 +134,8 @@ def leaderboard_page():
     </body>
     </html>
     """
-    log_event("🧾 Leaderboard page viewed (HTML)")
     return render_template_string(html, scores=sorted_scores)
+
 
 # Debug logs
 @app.route("/debug-logs")
