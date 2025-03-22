@@ -5,6 +5,8 @@ import os
 import datetime
 
 app = Flask(__name__)
+CORS(app, origins=["https://oscurantismo.github.io"])
+
 
 # Use /tmp for Railway compatibility
 DATA_FILE = "/tmp/scores.json"
