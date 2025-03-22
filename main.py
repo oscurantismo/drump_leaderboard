@@ -1,26 +1,19 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from flask_cors import CORS
-import os
 import json
+import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://oscurantismo.github.io"}})
+CORS(app)
 
+@app.after_request
+def allow_iframe(response):
+    response.headers['X-Frame-Options'] = 'ALLOWALL'
+    return response
 
-DATA_FILE = "scores.json"
-
-def load_scores():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            return json.load(f)
-    return []
-
-def save_scores(scores):
-    with open(DATA_FILE, "w") as f:
-        json.dump(scores, f)
-
-import json
-import os
+@app.route("/")
+def home():
+    return "✅ TrumpToss Leaderboard Backend is running!"
 
 @app.route("/submit", methods=["POST"])
 def submit_score():
@@ -42,7 +35,7 @@ def submit_score():
     else:
         print("🆕 Creating new scores.json")
 
-    # Update existing or append new
+    # Update existing or add new
     updated = False
     for entry in scores:
         if entry["username"] == username:
@@ -65,7 +58,6 @@ def submit_score():
 
     return {"success": True}
 
-
 @app.route("/leaderboard-page")
 def leaderboard_page():
     try:
@@ -74,10 +66,7 @@ def leaderboard_page():
     except:
         scores = []
 
-    # Sort scores from highest to lowest
     scores = sorted(scores, key=lambda x: x["score"], reverse=True)
-
-    # Limit to top 20 players
     scores = scores[:20]
 
     html = """
@@ -145,7 +134,6 @@ def debug_scores():
         return {"scores": scores}
     except Exception as e:
         return {"error": str(e)}
-
 
 if __name__ == "__main__":
     app.run(debug=True)
