@@ -4,43 +4,51 @@ import os
 import datetime
 
 app = Flask(__name__)
-DATA_FILE = "scores.json"
 
-LOG_FILE = "logs.txt"
+# Use /tmp for Railway compatibility
+DATA_FILE = "/tmp/scores.json"
+LOG_FILE = "/tmp/logs.txt"
 
+# Create log entry
 def log_event(message):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_FILE, "a") as f:
         f.write(f"[{timestamp}] {message}\n")
 
-# Ensure scores.json exists
+# Ensure data file exists
 def ensure_file():
     if not os.path.exists(DATA_FILE):
         with open(DATA_FILE, "w") as f:
             json.dump([], f)
+        log_event("✅ Created new scores.json")
 
-# Load scores from file
+# Load scores
 def load_scores():
     ensure_file()
-    with open(DATA_FILE, "r") as f:
-        try:
+    try:
+        with open(DATA_FILE, "r") as f:
             return json.load(f)
-        except json.JSONDecodeError:
-            return []
+    except Exception as e:
+        log_event(f"❌ Error loading scores: {e}")
+        return []
 
-# Save scores to file
+# Save scores
 def save_scores(scores):
-    with open(DATA_FILE, "w") as f:
-        json.dump(scores, f)
+    try:
+        with open(DATA_FILE, "w") as f:
+            json.dump(scores, f)
+        log_event("✅ Scores saved")
+    except Exception as e:
+        log_event(f"❌ Error saving scores: {e}")
 
-# Endpoint to submit scores
+# Submit score
 @app.route("/submit", methods=["POST"])
 def submit():
     data = request.get_json()
     username = data.get("username", "Anonymous")
     score = int(data.get("score", 0))
 
-    log_event(f"Score submitted – {username}: {score}")
+    log_event(f"📩 Score submitted – {username}: {score}")
 
     scores = load_scores()
     updated = False
@@ -49,26 +57,26 @@ def submit():
         if entry["username"] == username:
             if score > entry["score"]:
                 entry["score"] = score
-                log_event(f"Updated score for {username} to {score}")
+                log_event(f"🔁 Updated score for {username} to {score}")
             updated = True
             break
 
     if not updated:
         scores.append({"username": username, "score": score})
-        log_event(f"New user added: {username} with score {score}")
+        log_event(f"➕ New user: {username} with score {score}")
 
     save_scores(scores)
     return jsonify({"status": "ok"})
 
-
-# API for raw JSON leaderboard
+# JSON leaderboard
 @app.route("/leaderboard")
 def leaderboard():
     scores = load_scores()
     sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
+    log_event("📊 Leaderboard accessed (JSON)")
     return jsonify(sorted_scores)
 
-# HTML Leaderboard Page
+# HTML leaderboard
 @app.route("/leaderboard-page")
 def leaderboard_page():
     scores = load_scores()
@@ -123,8 +131,10 @@ def leaderboard_page():
     </body>
     </html>
     """
+    log_event("🧾 Leaderboard page viewed (HTML)")
     return render_template_string(html, scores=sorted_scores)
 
+# Debug logs
 @app.route("/debug-logs")
 def view_logs():
     if not os.path.exists(LOG_FILE):
@@ -143,7 +153,6 @@ def view_logs():
     </html>
     """
 
-
-# Run locally or with WSGI
+# Run the app
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
