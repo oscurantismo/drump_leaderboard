@@ -125,6 +125,15 @@ def leaderboard_page():
     """
     return html
 
+@app.route("/debug-scores")
+def debug_scores():
+    try:
+        with open("scores.json", "r") as f:
+            scores = json.load(f)
+        return {"scores": scores}
+    except Exception as e:
+        return {"error": str(e)}
+
 
 if __name__ == "__main__":
     app.run(debug=True)
