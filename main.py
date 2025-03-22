@@ -1,43 +1,32 @@
-from flask import Flask, request
-from flask_cors import CORS
+from flask import Flask, request, jsonify, render_template_string
 import json
 import os
 
 app = Flask(__name__)
-CORS(app)
+DATA_FILE = "scores.json"
 
-SCORES_PATH = "/tmp/scores.json"
+# Load scores from file
+def load_scores():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r") as f:
+            return json.load(f)
+    return []
 
-@app.after_request
-def allow_iframe(response):
-    response.headers['X-Frame-Options'] = 'ALLOWALL'
-    return response
+# Save scores to file
+def save_scores(scores):
+    with open(DATA_FILE, "w") as f:
+        json.dump(scores, f)
 
-@app.route("/")
-def home():
-    return "✅ TrumpToss Leaderboard Backend is running!"
-
+# Endpoint to submit scores
 @app.route("/submit", methods=["POST"])
-def submit_score():
+def submit():
     data = request.get_json()
     username = data.get("username", "Anonymous")
-    score = int(data.get("score", 0))
+    score = data.get("score", 0)
 
-    print(f"📩 Received score from {username}: {score}")
-
-    scores = []
-
-    if os.path.exists(SCORES_PATH):
-        try:
-            with open(SCORES_PATH, "r") as f:
-                scores = json.load(f)
-        except Exception as e:
-            print("⚠️ Failed to load scores.json:", e)
-            scores = []
-    else:
-        print("🆕 Creating new scores.json at /tmp")
-
+    scores = load_scores()
     updated = False
+
     for entry in scores:
         if entry["username"] == username:
             if score > entry["score"]:
@@ -48,120 +37,73 @@ def submit_score():
     if not updated:
         scores.append({"username": username, "score": score})
 
-    try:
-        with open(SCORES_PATH, "w") as f:
-            json.dump(scores, f)
-        print("✅ scores.json written to /tmp")
-    except Exception as e:
-        print("❌ Failed to write /tmp/scores.json:", e)
+    save_scores(scores)
+    return jsonify({"status": "ok"})
 
-    return {"success": True}
+# JSON API for leaderboard
+@app.route("/leaderboard")
+def leaderboard():
+    scores = load_scores()
+    sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
+    return jsonify(sorted_scores)
 
+# HTML Leaderboard Page
 @app.route("/leaderboard-page")
 def leaderboard_page():
-    if os.path.exists(SCORES_PATH):
-        try:
-            with open(SCORES_PATH, "r") as f:
-                scores = json.load(f)
-        except Exception as e:
-            print("⚠️ Could not load leaderboard:", e)
-            scores = []
-    else:
-        print("📁 No scores.json found yet.")
-        scores = []
-
-
-    scores = sorted(scores, key=lambda x: x["score"], reverse=True)
-    scores = scores[:20]
+    scores = load_scores()
+    sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
 
     html = """
+    <!DOCTYPE html>
     <html>
     <head>
-        <title>TrumpToss Leaderboard</title>
+        <title>Leaderboard</title>
         <style>
             body {
                 font-family: Arial, sans-serif;
-                text-align: center;
-                padding: 40px;
-                background-color: #f2f2f2;
-            }
-            h1 {
-                font-size: 28px;
+                background: #fff;
+                padding: 20px;
                 color: #333;
+                text-align: center;
+            }
+            h2 {
+                color: #0077cc;
             }
             table {
-                margin: 20px auto;
+                width: 100%;
                 border-collapse: collapse;
-                width: 90%%;
-                max-width: 500px;
-                background-color: #fff;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                margin-top: 20px;
             }
             th, td {
-                padding: 12px;
-                border-bottom: 1px solid #ddd;
+                padding: 10px;
+                border-bottom: 1px solid #ccc;
             }
             th {
-                background-color: #0077cc;
-                color: white;
-            }
-            tr:nth-child(even) {
-                background-color: #f9f9f9;
-            }
-            tr:hover {
-                background-color: #e1f5fe;
+                background: #f4f4f4;
             }
         </style>
     </head>
     <body>
-        <h1>TrumpToss Leaderboard</h1>
+        <h2>🏆 TrumpToss Leaderboard</h2>
+        {% if scores %}
         <table>
-            <tr><th>Rank</th><th>Player</th><th>Punches</th></tr>
-    """
-
-    for i, entry in enumerate(scores):
-        username = entry.get("username", "Anonymous")
-        score = entry.get("score", 0)
-        html += f"<tr><td>{i + 1}</td><td>{username}</td><td>{score}</td></tr>"
-
-    html += """
+            <tr><th>#</th><th>Username</th><th>Score</th></tr>
+            {% for i, entry in enumerate(scores) %}
+            <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ entry.username }}</td>
+                <td>{{ entry.score }}</td>
+            </tr>
+            {% endfor %}
         </table>
+        {% else %}
+        <p>No scores submitted yet.</p>
+        {% endif %}
     </body>
     </html>
     """
-    return html
+    return render_template_string(html, scores=sorted_scores)
 
-@app.route("/debug-scores")
-def debug_scores():
-    try:
-        with open(SCORES_PATH, "r") as f:
-            scores = json.load(f)
-        return {"scores": scores}
-    except Exception as e:
-        return {"error": str(e)}
-
-@app.route("/logs")
-def logs():
-    if os.path.exists(SCORES_PATH):
-        try:
-            with open(SCORES_PATH, "r") as f:
-                scores = json.load(f)
-            return {
-                "message": "✅ Scores loaded successfully.",
-                "count": len(scores),
-                "scores": scores
-            }
-        except Exception as e:
-            return {
-                "error": "⚠️ Failed to read scores.json.",
-                "details": str(e)
-            }
-    else:
-        return {
-            "error": "📁 scores.json does not exist yet.",
-            "tip": "Try punching Trump at least once in-game to generate it."
-        }
-
-
+# Run locally or with WSGI
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
