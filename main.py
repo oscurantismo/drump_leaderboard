@@ -4,7 +4,8 @@ import os
 import json
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "https://oscurantismo.github.io"}})
+
 
 DATA_FILE = "scores.json"
 
