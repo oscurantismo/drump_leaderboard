@@ -10,6 +10,8 @@ CORS(app)
 DATA_FILE = "scores.json"
 LOG_FILE = "logs.txt"
 
+# === Utility Functions ===
+
 def log_event(message):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_FILE, "a") as f:
@@ -32,13 +34,17 @@ def load_scores():
 
 def save_scores(scores):
     with open(DATA_FILE, "w") as f:
-        json.dump(scores, f)
+        json.dump(scores, f, indent=2)
+
+# === API Routes ===
 
 @app.route("/submit", methods=["POST"])
 def submit():
     data = request.get_json()
-    username = data.get("username", "Anonymous")
+    username = (data.get("username") or "Anonymous").strip()
+    username = username if username else "Anonymous"
     score = int(data.get("score", 0))
+    score = max(0, score)
 
     log_event(f"🔄 Score submitted: {username} – {score}")
 
@@ -46,7 +52,7 @@ def submit():
     updated = False
 
     for entry in scores:
-        if entry.get("username") == username:
+        if entry.get("username", "").lower() == username.lower():
             if score > entry["score"]:
                 entry["score"] = score
                 log_event(f"✅ Updated score for {username} to {score}")
@@ -63,11 +69,13 @@ def submit():
 @app.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
-    username = data.get("username", "Anonymous")
+    username = (data.get("username") or "Anonymous").strip()
+    username = username if username else "Anonymous"
 
     scores = load_scores()
     for entry in scores:
-        if entry.get("username") == username:
+        if entry.get("username", "").lower() == username.lower():
+            log_event(f"🔁 Already registered: {username}")
             return jsonify({"status": "already_registered"})
 
     scores.append({"username": username, "score": 0})
@@ -157,5 +165,6 @@ def view_logs():
     </html>
     """
 
+# === Entry Point ===
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
