@@ -38,26 +38,24 @@ def save_scores(scores):
 def submit():
     data = request.get_json()
     username = data.get("username", "Anonymous")
-    user_id = str(data.get("user_id", "unknown"))
     score = int(data.get("score", 0))
 
-    log_event(f"Score submitted – {username} (ID: {user_id}): {score}")
+    log_event(f"🔄 Incoming submission: username={username}, score={score}")
 
     scores = load_scores()
     updated = False
 
     for entry in scores:
-        if entry.get("user_id") == user_id:
+        if entry.get("username") == username:
             if score > entry["score"]:
                 entry["score"] = score
-                entry["username"] = username
-                log_event(f"Updated score for {username} (ID: {user_id}) to {score}")
+                log_event(f"✅ Updated score for {username} to {score}")
             updated = True
             break
 
     if not updated:
-        scores.append({"username": username, "score": score, "user_id": user_id})
-        log_event(f"New user added: {username} (ID: {user_id}) with score {score}")
+        scores.append({"username": username, "score": score})
+        log_event(f"🆕 New user added: {username} with score {score}")
 
     save_scores(scores)
     return jsonify({"status": "ok"})
@@ -66,6 +64,7 @@ def submit():
 def leaderboard():
     scores = load_scores()
     sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
+    log_event(f"📊 Leaderboard requested (JSON): {sorted_scores}")
     return jsonify(sorted_scores)
 
 @app.route("/leaderboard-page")
@@ -124,7 +123,6 @@ def leaderboard_page():
     """
     log_event("🧾 Leaderboard page viewed (HTML)")
     return render_template_string(html, scores=sorted_scores)
-
 
 @app.route("/debug-logs")
 def view_logs():
