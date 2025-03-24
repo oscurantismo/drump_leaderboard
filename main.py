@@ -116,11 +116,15 @@ def leaderboard_page():
             </tr>
             {% endfor %}
         </table>
+        {% else %}
+        <p>No scores submitted yet.</p>
+        {% endif %}
     </body>
     </html>
     """
     log_event("🧾 Leaderboard page viewed (HTML)")
     return render_template_string(html, scores=sorted_scores)
+
 
 @app.route("/debug-logs")
 def view_logs():
