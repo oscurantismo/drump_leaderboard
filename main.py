@@ -107,19 +107,15 @@ def leaderboard_page():
         <h2>🏆 TrumpToss Leaderboard</h2>
         {% if scores %}
         <table>
-            <tr><th>#</th><th>Username</th><th>Score</th><th>User ID</th></tr>
+            <tr><th>#</th><th>Username</th><th>Score</th></tr>
             {% for entry in scores %}
             <tr>
                 <td>{{ loop.index }}</td>
                 <td>{{ entry.username }}</td>
                 <td>{{ entry.score }}</td>
-                <td>{{ entry.user_id }}</td>
             </tr>
             {% endfor %}
         </table>
-        {% else %}
-        <p>No scores submitted yet.</p>
-        {% endif %}
     </body>
     </html>
     """
