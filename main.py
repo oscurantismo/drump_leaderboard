@@ -40,7 +40,7 @@ def submit():
     username = data.get("username", "Anonymous")
     score = int(data.get("score", 0))
 
-    log_event(f"🔄 Incoming submission: username={username}, score={score}")
+    log_event(f"🔄 Score submitted: {username} – {score}")
 
     scores = load_scores()
     updated = False
@@ -59,6 +59,21 @@ def submit():
 
     save_scores(scores)
     return jsonify({"status": "ok"})
+
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    username = data.get("username", "Anonymous")
+
+    scores = load_scores()
+    for entry in scores:
+        if entry.get("username") == username:
+            return jsonify({"status": "already_registered"})
+
+    scores.append({"username": username, "score": 0})
+    save_scores(scores)
+    log_event(f"📝 Auto-registered new user: {username}")
+    return jsonify({"status": "registered"})
 
 @app.route("/leaderboard")
 def leaderboard():
