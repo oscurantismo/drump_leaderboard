@@ -65,8 +65,10 @@ def submit():
         if entry.get("user_id") == user_id:
             if score > entry["score"]:
                 entry["score"] = score
-                entry["username"] = username  # Optional update
+                entry["username"] = username
                 log_event(f"✅ Updated score for {username} ({user_id}) to {score}")
+            else:
+                log_event(f"➖ Score not improved for {username} ({user_id}), remains {entry['score']}")
             updated = True
             break
 
@@ -101,7 +103,7 @@ def register():
 def leaderboard():
     scores = load_scores()
     sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
-    log_event(f"📊 Leaderboard requested (JSON): {sorted_scores}")
+    log_event(f"📊 Leaderboard requested (JSON): {json.dumps(sorted_scores)}")
     return jsonify(sorted_scores)
 
 @app.route("/leaderboard-page")
