@@ -41,10 +41,21 @@ def save_scores(scores):
 @app.route("/submit", methods=["POST"])
 def submit():
     data = request.get_json()
+
+    # Extract username and score safely
     username = (data.get("username") or "Anonymous").strip()
-    username = username if username else "Anonymous"
-    score = int(data.get("score", 0))
-    score = max(0, score)
+    score = data.get("score")
+
+    # Validate values
+    if not username:
+        username = "Anonymous"
+    try:
+        score = int(score)
+        if score < 0:
+            score = 0
+    except (TypeError, ValueError):
+        log_event(f"❌ Invalid score submitted by {username}: {score}")
+        return jsonify({"status": "error", "message": "Invalid score"}), 400
 
     log_event(f"🔄 Score submitted: {username} – {score}")
 
@@ -70,7 +81,8 @@ def submit():
 def register():
     data = request.get_json()
     username = (data.get("username") or "Anonymous").strip()
-    username = username if username else "Anonymous"
+    if not username:
+        username = "Anonymous"
 
     scores = load_scores()
     for entry in scores:
