@@ -41,14 +41,13 @@ def save_scores(scores):
 @app.route("/submit", methods=["POST"])
 def submit():
     data = request.get_json()
-
-    # Extract username and score safely
+    user_id = str(data.get("user_id", "")).strip()
     username = (data.get("username") or "Anonymous").strip()
     score = data.get("score")
 
-    # Validate values
-    if not username:
-        username = "Anonymous"
+    if not user_id:
+        return jsonify({"status": "error", "message": "Missing user_id"}), 400
+
     try:
         score = int(score)
         if score < 0:
@@ -57,22 +56,23 @@ def submit():
         log_event(f"❌ Invalid score submitted by {username}: {score}")
         return jsonify({"status": "error", "message": "Invalid score"}), 400
 
-    log_event(f"🔄 Score submitted: {username} – {score}")
+    log_event(f"🔄 Score submitted: {username} ({user_id}) – {score}")
 
     scores = load_scores()
     updated = False
 
     for entry in scores:
-        if entry.get("username", "").lower() == username.lower():
+        if entry.get("user_id") == user_id:
             if score > entry["score"]:
                 entry["score"] = score
-                log_event(f"✅ Updated score for {username} to {score}")
+                entry["username"] = username  # Optional update
+                log_event(f"✅ Updated score for {username} ({user_id}) to {score}")
             updated = True
             break
 
     if not updated:
-        scores.append({"username": username, "score": score})
-        log_event(f"🆕 New user added: {username} with score {score}")
+        scores.append({"user_id": user_id, "username": username, "score": score})
+        log_event(f"🆕 New user added: {username} ({user_id}) with score {score}")
 
     save_scores(scores)
     return jsonify({"status": "ok"})
@@ -80,19 +80,21 @@ def submit():
 @app.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
+    user_id = str(data.get("user_id", "")).strip()
     username = (data.get("username") or "Anonymous").strip()
-    if not username:
-        username = "Anonymous"
+
+    if not user_id:
+        return jsonify({"status": "error", "message": "Missing user_id"}), 400
 
     scores = load_scores()
     for entry in scores:
-        if entry.get("username", "").lower() == username.lower():
-            log_event(f"🔁 Already registered: {username}")
+        if entry.get("user_id") == user_id:
+            log_event(f"🔁 Already registered: {username} ({user_id})")
             return jsonify({"status": "already_registered"})
 
-    scores.append({"username": username, "score": 0})
+    scores.append({"user_id": user_id, "username": username, "score": 0})
     save_scores(scores)
-    log_event(f"📝 Auto-registered new user: {username}")
+    log_event(f"📝 Auto-registered new user: {username} ({user_id})")
     return jsonify({"status": "registered"})
 
 @app.route("/leaderboard")
