@@ -10,8 +10,6 @@ CORS(app)
 DATA_FILE = "scores.json"
 LOG_FILE = "logs.txt"
 
-# === Utility Functions ===
-
 def log_event(message):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_FILE, "a") as f:
@@ -36,27 +34,15 @@ def save_scores(scores):
     with open(DATA_FILE, "w") as f:
         json.dump(scores, f, indent=2)
 
-# === API Routes ===
-
 @app.route("/submit", methods=["POST"])
 def submit():
     data = request.get_json()
-    user_id = str(data.get("user_id", "")).strip()
     username = (data.get("username") or "Anonymous").strip()
-    score = data.get("score")
+    user_id = str(data.get("user_id", "")).strip()
+    score = int(data.get("score", 0))
+    score = max(0, score)
 
-    if not user_id:
-        return jsonify({"status": "error", "message": "Missing user_id"}), 400
-
-    try:
-        score = int(score)
-        if score < 0:
-            score = 0
-    except (TypeError, ValueError):
-        log_event(f"❌ Invalid score submitted by {username}: {score}")
-        return jsonify({"status": "error", "message": "Invalid score"}), 400
-
-    log_event(f"🔄 Score submitted: {username} ({user_id}) – {score}")
+    log_event(f"🔄 Score submitted: {username} (ID: {user_id}) – {score}")
 
     scores = load_scores()
     updated = False
@@ -66,15 +52,13 @@ def submit():
             if score > entry["score"]:
                 entry["score"] = score
                 entry["username"] = username
-                log_event(f"✅ Updated score for {username} ({user_id}) to {score}")
-            else:
-                log_event(f"➖ Score not improved for {username} ({user_id}), remains {entry['score']}")
+                log_event(f"✅ Updated score for {username} (ID: {user_id}) to {score}")
             updated = True
             break
 
     if not updated:
-        scores.append({"user_id": user_id, "username": username, "score": score})
-        log_event(f"🆕 New user added: {username} ({user_id}) with score {score}")
+        scores.append({"username": username, "user_id": user_id, "score": score})
+        log_event(f"🆕 New user added: {username} (ID: {user_id}) with score {score}")
 
     save_scores(scores)
     return jsonify({"status": "ok"})
@@ -82,34 +66,32 @@ def submit():
 @app.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
-    user_id = str(data.get("user_id", "")).strip()
     username = (data.get("username") or "Anonymous").strip()
-
-    if not user_id:
-        return jsonify({"status": "error", "message": "Missing user_id"}), 400
+    user_id = str(data.get("user_id", "")).strip()
 
     scores = load_scores()
     for entry in scores:
         if entry.get("user_id") == user_id:
-            log_event(f"🔁 Already registered: {username} ({user_id})")
+            log_event(f"🔁 Already registered: {username} (ID: {user_id})")
             return jsonify({"status": "already_registered"})
 
-    scores.append({"user_id": user_id, "username": username, "score": 0})
+    scores.append({"username": username, "user_id": user_id, "score": 0})
     save_scores(scores)
-    log_event(f"📝 Auto-registered new user: {username} ({user_id})")
+    log_event(f"📝 Auto-registered new user: {username} (ID: {user_id})")
     return jsonify({"status": "registered"})
 
 @app.route("/leaderboard")
 def leaderboard():
     scores = load_scores()
     sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
-    log_event(f"📊 Leaderboard requested (JSON): {json.dumps(sorted_scores)}")
+    log_event(f"📊 Leaderboard requested (JSON): {sorted_scores}")
     return jsonify(sorted_scores)
 
 @app.route("/leaderboard-page")
 def leaderboard_page():
     scores = load_scores()
     sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
+    current_user_id = request.args.get("user_id", "")
 
     html = """
     <!DOCTYPE html>
@@ -118,26 +100,40 @@ def leaderboard_page():
         <title>Leaderboard</title>
         <style>
             body {
-                font-family: Arial, sans-serif;
-                background: #fff;
+                font-family: 'Arial Black', sans-serif;
+                background: #ffffff;
                 padding: 20px;
-                color: #333;
+                color: #002868;
                 text-align: center;
             }
             h2 {
-                color: #0077cc;
+                color: #b22234;
+                margin-bottom: 20px;
             }
             table {
                 width: 100%;
                 border-collapse: collapse;
-                margin-top: 20px;
+                margin-top: 10px;
             }
             th, td {
-                padding: 10px;
-                border-bottom: 1px solid #ccc;
+                padding: 12px;
+                border-bottom: 2px solid #ddd;
+                font-size: 16px;
             }
             th {
-                background: #f4f4f4;
+                background: #002868;
+                color: white;
+            }
+            tr.highlight {
+                background-color: #ffeeba !important;
+                animation: flash 1s ease-in-out;
+            }
+            tr:hover {
+                background-color: #f1f1f1;
+            }
+            @keyframes flash {
+                from { background-color: #fff3cd; }
+                to { background-color: #ffeeba; }
             }
         </style>
     </head>
@@ -147,7 +143,7 @@ def leaderboard_page():
         <table>
             <tr><th>#</th><th>Username</th><th>Score</th></tr>
             {% for entry in scores %}
-            <tr>
+            <tr class="{% if entry.user_id == current_user_id %}highlight{% endif %}">
                 <td>{{ loop.index }}</td>
                 <td>{{ entry.username }}</td>
                 <td>{{ entry.score }}</td>
@@ -161,7 +157,7 @@ def leaderboard_page():
     </html>
     """
     log_event("🧾 Leaderboard page viewed (HTML)")
-    return render_template_string(html, scores=sorted_scores)
+    return render_template_string(html, scores=sorted_scores, current_user_id=current_user_id)
 
 @app.route("/debug-logs")
 def view_logs():
@@ -181,6 +177,5 @@ def view_logs():
     </html>
     """
 
-# === Entry Point ===
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
