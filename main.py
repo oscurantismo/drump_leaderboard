@@ -138,7 +138,7 @@ def leaderboard_page():
         </style>
     </head>
     <body>
-        <h2>🏆 TrumpToss Leaderboard</h2>
+        <h2>🏆 Leaderboard</h2>
         {% if scores %}
         <table>
             <tr><th>#</th><th>Username</th><th>Score</th></tr>
@@ -171,7 +171,7 @@ def view_logs():
     <html>
     <head><title>Debug Logs</title></head>
     <body style="font-family: monospace; padding: 20px;">
-        <h2>🪝 TrumpToss Server Logs</h2>
+        <h2>🪝 Drump Server Logs</h2>
         <div>{log_content}</div>
     </body>
     </html>
