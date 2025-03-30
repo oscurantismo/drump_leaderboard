@@ -159,12 +159,88 @@ def leaderboard_page():
     log_event("🧾 Leaderboard page viewed (HTML)")
     return render_template_string(html, scores=sorted_scores, current_user_id=current_user_id)
 
-@app.route('/profile', methods=['GET'])
+@app.route("/profile", methods=["GET"])
 def profile():
-    user_id = request.args.get('user_id')
-    if not user_id or user_id not in users:
+    user_id = request.args.get("user_id")
+    if not user_id:
+        log_event("❗ Missing user ID in profile request.")
+        return jsonify({"error": "User ID is required"}), 400
+
+    scores = load_scores()
+    user_data = next((entry for entry in scores if entry.get("user_id") == user_id), None)
+
+    if not user_data:
+        log_event(f"❗ User not found: {user_id}")
         return jsonify({"error": "User not found"}), 404
-    return jsonify(users[user_id]), 200
+
+    return jsonify({
+        "username": user_data.get("username", "Anonymous"),
+        "coins": user_data.get("score", 0)
+    })
+
+@app.route("/referral", methods=["POST"])
+def referral():
+    data = request.get_json()
+    referrer_id = str(data.get("referrer_id", "")).strip()
+    referred_user_id = str(data.get("user_id", "")).strip()
+
+    if not referrer_id or not referred_user_id or referrer_id == referred_user_id:
+        log_event("❗ Invalid referral data.")
+        return jsonify({"error": "Invalid referral data"}), 400
+
+    scores = load_scores()
+    referrer = next((entry for entry in scores if entry.get("user_id") == referrer_id), None)
+    referred_user = next((entry for entry in scores if entry.get("user_id") == referred_user_id), None)
+
+    if not referrer:
+        log_event(f"❗ Referrer not found: {referrer_id}")
+        return jsonify({"error": "Referrer not found"}), 404
+
+    if not referred_user:
+        log_event(f"❗ Referred user not found: {referred_user_id}")
+        return jsonify({"error": "Referred user not found"}), 404
+
+    # Reward referrer with 10 coins
+    referrer["score"] += 10
+    save_scores(scores)
+    log_event(f"🎉 Referral completed: {referrer['username']} earned +10 coins.")
+
+    return jsonify({"status": "success", "new_coins": referrer["score"]})
+
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    username = (data.get("username") or "Anonymous").strip()
+    user_id = str(data.get("user_id", "")).strip()
+    referrer_id = str(data.get("referrer_id", "")).strip()
+
+    scores = load_scores()
+    for entry in scores:
+        if entry.get("user_id") == user_id:
+            log_event(f"🔁 Already registered: {username} (ID: {user_id})")
+            return jsonify({"status": "already_registered"})
+
+    # Register the new user
+    scores.append({"username": username, "user_id": user_id, "score": 0})
+    save_scores(scores)
+    log_event(f"📝 Registered new user: {username} (ID: {user_id})")
+
+    # Handle referral if referrer_id exists
+    if referrer_id:
+        try:
+            referral_response = referral()
+            log_event(f"🎁 Referral bonus granted to {referrer_id}")
+        except Exception as e:
+            log_event(f"❗ Referral failed: {str(e)}")
+
+    return jsonify({"status": "registered"})
+
+def log_event(message):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(LOG_FILE, "a") as f:
+        f.write(f"[{timestamp}] {message}\n")
+    print(f"[{timestamp}] {message}")  # Print to console for easy debugging
+
 
 @app.route("/debug-logs")
 def view_logs():
