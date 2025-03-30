@@ -92,6 +92,85 @@ def register():
 
     return jsonify({"status": "registered"})
 
+@app.route("/leaderboard")
+def leaderboard():
+    scores = load_scores()
+    sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
+    log_event(f"📊 Leaderboard requested (JSON): {sorted_scores}")
+    return jsonify(sorted_scores)
+
+@app.route("/leaderboard-page")
+def leaderboard_page():
+    scores = load_scores()
+    sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
+    current_user_id = request.args.get("user_id", "")
+
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Leaderboard</title>
+        <style>
+            body {
+                font-family: 'Arial Black', sans-serif;
+                background: #ffffff;
+                padding: 20px;
+                color: #002868;
+                text-align: center;
+            }
+            h2 {
+                color: #b22234;
+                margin-bottom: 20px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+            }
+            th, td {
+                padding: 12px;
+                border-bottom: 2px solid #ddd;
+                font-size: 16px;
+            }
+            th {
+                background: #002868;
+                color: white;
+            }
+            tr.highlight {
+                background-color: #ffeeba !important;
+                animation: flash 1s ease-in-out;
+            }
+            tr:hover {
+                background-color: #f1f1f1;
+            }
+            @keyframes flash {
+                from { background-color: #fff3cd; }
+                to { background-color: #ffeeba; }
+            }
+        </style>
+    </head>
+    <body>
+        <h2>🏆 Leaderboard</h2>
+        {% if scores %}
+        <table>
+            <tr><th>#</th><th>Username</th><th>Score</th></tr>
+            {% for entry in scores %}
+            <tr class="{% if entry.user_id == current_user_id %}highlight{% endif %}">
+                <td>{{ loop.index }}</td>
+                <td>{{ entry.username }}</td>
+                <td>{{ entry.score }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No scores submitted yet.</p>
+        {% endif %}
+    </body>
+    </html>
+    """
+    log_event("🧾 Leaderboard page viewed (HTML)")
+    return render_template_string(html, scores=sorted_scores, current_user_id=current_user_id)
+
 @app.route("/profile", methods=["GET"])
 def profile():
     user_id = request.args.get("user_id")
@@ -110,6 +189,24 @@ def profile():
         "username": user_data.get("username", "Anonymous"),
         "coins": user_data.get("score", 0)
     })
+
+@app.route("/debug-logs")
+def view_logs():
+    if not os.path.exists(LOG_FILE):
+        return "<h3>No logs yet.</h3>"
+
+    with open(LOG_FILE, "r") as f:
+        log_content = f.read().replace("\n", "<br>")
+
+    return f"""
+    <html>
+    <head><title>Debug Logs</title></head>
+    <body style="font-family: monospace; padding: 20px;">
+        <h2>🪵 Server Logs</h2>
+        <div>{log_content}</div>
+    </body>
+    </html>
+    """
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
