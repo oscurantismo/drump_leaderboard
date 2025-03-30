@@ -159,6 +159,13 @@ def leaderboard_page():
     log_event("🧾 Leaderboard page viewed (HTML)")
     return render_template_string(html, scores=sorted_scores, current_user_id=current_user_id)
 
+@app.route('/profile', methods=['GET'])
+def profile():
+    user_id = request.args.get('user_id')
+    if not user_id or user_id not in users:
+        return jsonify({"error": "User not found"}), 404
+    return jsonify(users[user_id]), 200
+
 @app.route("/debug-logs")
 def view_logs():
     if not os.path.exists(LOG_FILE):
