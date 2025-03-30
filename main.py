@@ -7,8 +7,8 @@ import datetime
 app = Flask(__name__)
 CORS(app)
 
-DATA_FILE = "scores.json"
-LOG_FILE = "logs.txt"
+DATA_FILE = "/app/data/scores.json"
+LOG_FILE = "/app/data/logs.txt"
 
 def log_event(message):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -18,9 +18,11 @@ def log_event(message):
 
 def ensure_file():
     if not os.path.exists(DATA_FILE):
+        os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
         with open(DATA_FILE, "w") as f:
             json.dump([], f)
-        log_event("✅ Created new scores.json")
+        log_event("✅ Created new scores.json in /app/data")
+
 
 def load_scores():
     ensure_file()
