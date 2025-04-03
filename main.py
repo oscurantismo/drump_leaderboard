@@ -144,7 +144,7 @@ def profile():
 
     return jsonify({
         "username": entry["username"],
-        "coins": entry["score"]
+        "punches": entry["score"]
     })
 
 @app.route("/referral-history")
