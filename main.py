@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string, send_file
 from flask_cors import CORS
 import json
 import os
@@ -9,6 +9,7 @@ CORS(app)
 
 DATA_FILE = "/app/data/scores.json"
 LOG_FILE = "/app/data/logs.txt"
+BACKUP_FOLDER = "/app/data/backups"
 
 def log_event(message):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -22,6 +23,10 @@ def ensure_file():
         with open(DATA_FILE, "w") as f:
             json.dump([], f)
         log_event("✅ Created new scores.json in /app/data")
+
+def ensure_backup_folder():
+    os.makedirs(BACKUP_FOLDER, exist_ok=True)
+    log_event("📁 Backup folder ensured at /app/data/backups")
 
 def load_scores():
     ensure_file()
@@ -37,12 +42,13 @@ def save_scores(scores):
         json.dump(scores, f, indent=2)
 
 def backup_scores():
+    ensure_backup_folder()
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = f"/app/data/scores_backup_{timestamp}.json"
+    backup_path = os.path.join(BACKUP_FOLDER, f"leaderboard_backup_{timestamp}.json")
     scores = load_scores()
     with open(backup_path, "w") as f:
         json.dump(scores, f, indent=2)
-    log_event(f"🧷 Created backup at {backup_path}")
+    log_event(f"💾 Backup saved: {backup_path}")
 
 @app.route("/submit", methods=["POST"])
 def submit():
@@ -64,7 +70,6 @@ def submit():
                 entry["username"] = username
                 log_event(f"✅ Updated score for {username} (ID: {user_id}) from {old_score} to {score}")
 
-                # Referral reward condition
                 referrer_id = entry.get("referred_by")
                 if old_score < 10 <= score and referrer_id:
                     referrer = next((e for e in scores if e["user_id"] == referrer_id), None)
@@ -94,6 +99,7 @@ def submit():
         log_event(f"🆕 New user added: {username} (ID: {user_id}) with score {score}")
 
     save_scores(scores)
+    backup_scores()
     return jsonify({"status": "ok"})
 
 @app.route("/register", methods=["POST"])
@@ -232,6 +238,85 @@ def leaderboard_page():
     </html>
     """
     return render_template_string(html, scores=sorted_scores, current_user_id=current_user_id)
+
+@app.route("/download-backup")
+def download_backup():
+    filename = request.args.get("file")
+    if not filename or not filename.endswith(".json"):
+        return "Invalid filename", 400
+    filepath = os.path.join(BACKUP_FOLDER, filename)
+    if not os.path.exists(filepath):
+        return "File not found", 404
+    return send_file(filepath, as_attachment=True)
+
+@app.route("/backups")
+def view_backups():
+    files = sorted(os.listdir(BACKUP_FOLDER), reverse=True)
+    json_files = [f for f in files if f.endswith(".json")]
+
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>📦 Backups</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: #f4f4f4;
+                padding: 20px;
+                color: #333;
+            }
+            h2 {
+                color: #0047ab;
+            }
+            ul {
+                list-style: none;
+                padding: 0;
+            }
+            li {
+                background: #fff;
+                margin-bottom: 10px;
+                padding: 10px 15px;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            a.download-btn {
+                background: #007bff;
+                color: #fff;
+                padding: 6px 12px;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: bold;
+                transition: background 0.3s;
+            }
+            a.download-btn:hover {
+                background: #0056b3;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>📦 Leaderboard & Referral Backups</h2>
+        <ul>
+    """
+
+    for filename in json_files:
+        html += f"""
+        <li>
+            {filename}
+            <a class="download-btn" href="/download-backup?file={filename}">Download</a>
+        </li>
+        """
+
+    html += """
+        </ul>
+    </body>
+    </html>
+    """
+
+    return html
 
 @app.route("/debug-logs")
 def view_logs():
