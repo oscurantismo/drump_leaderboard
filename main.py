@@ -36,6 +36,14 @@ def save_scores(scores):
     with open(DATA_FILE, "w") as f:
         json.dump(scores, f, indent=2)
 
+def backup_scores():
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_path = f"/app/data/scores_backup_{timestamp}.json"
+    scores = load_scores()
+    with open(backup_path, "w") as f:
+        json.dump(scores, f, indent=2)
+    log_event(f"🧷 Created backup at {backup_path}")
+
 @app.route("/submit", methods=["POST"])
 def submit():
     data = request.get_json()
@@ -56,7 +64,7 @@ def submit():
                 entry["username"] = username
                 log_event(f"✅ Updated score for {username} (ID: {user_id}) from {old_score} to {score}")
 
-                # Check if this user was referred by someone and just reached 10 punches
+                # Referral reward condition
                 referrer_id = entry.get("referred_by")
                 if old_score < 10 <= score and referrer_id:
                     referrer = next((e for e in scores if e["user_id"] == referrer_id), None)
@@ -78,7 +86,6 @@ def submit():
                         })
 
                         log_event(f"🎉 Referral bonus: {referrer['username']} (ID: {referrer_id}) +{reward} punches for {username}")
-
             updated = True
             break
 
@@ -160,7 +167,70 @@ def leaderboard_page():
     sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
     current_user_id = request.args.get("user_id", "")
 
-    html = """..."""  # unchanged HTML leaderboard template
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Leaderboard</title>
+        <style>
+            body {
+                font-family: 'Arial Black', sans-serif;
+                background: #ffffff;
+                padding: 20px;
+                color: #002868;
+                text-align: center;
+            }
+            h2 {
+                color: #b22234;
+                margin-bottom: 20px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+                margin-bottom: 60px;
+            }
+            th, td {
+                padding: 12px;
+                border-bottom: 2px solid #ddd;
+                font-size: 16px;
+            }
+            th {
+                background: #002868;
+                color: white;
+            }
+            tr.highlight {
+                background-color: #ffeeba !important;
+                animation: flash 1s ease-in-out;
+            }
+            tr:hover {
+                background-color: #f1f1f1;
+            }
+            @keyframes flash {
+                from { background-color: #fff3cd; }
+                to { background-color: #ffeeba; }
+            }
+        </style>
+    </head>
+    <body>
+        <h2>🏆 Leaderboard</h2>
+        {% if scores %}
+        <table>
+            <tr><th>#</th><th>Username</th><th>Score</th></tr>
+            {% for entry in scores %}
+            <tr class="{% if entry.user_id == current_user_id %}highlight{% endif %}">
+                <td>{{ loop.index }}</td>
+                <td>{{ entry.username }}</td>
+                <td>{{ entry.score }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No scores submitted yet.</p>
+        {% endif %}
+    </body>
+    </html>
+    """
     return render_template_string(html, scores=sorted_scores, current_user_id=current_user_id)
 
 @app.route("/debug-logs")
