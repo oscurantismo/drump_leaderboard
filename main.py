@@ -68,13 +68,20 @@ def submit():
                 old_score = entry["score"]
                 entry["score"] = score
                 entry["username"] = username
-                log_event(f"✅ Updated score for {username} (ID: {user_id}) from {old_score} to {score}")
 
+                # Apply 25% bonus every 100 punches
+                if score >= 100:
+                    bonus_trigger = score // 100
+                    bonus = round((bonus_trigger * 100) * 0.25)
+                    entry["score"] += bonus
+                    log_event(f"💥 Bonus: {username} reached {score}, +{bonus} bonus added")
+
+                # Referral reward if user passed 10 punches and hasn't rewarded yet
                 referrer_id = entry.get("referred_by")
                 if old_score < 10 <= score and referrer_id:
                     referrer = next((e for e in scores if e["user_id"] == referrer_id), None)
                     if referrer:
-                        reward = 100
+                        reward = 1000
                         old_ref_score = referrer["score"]
                         referrer["score"] += reward
 
@@ -91,16 +98,24 @@ def submit():
                         })
 
                         log_event(f"🎉 Referral bonus: {referrer['username']} (ID: {referrer_id}) +{reward} punches for {username}")
+
+                log_event(f"✅ Updated score for {username} (ID: {user_id}) to {entry['score']}")
             updated = True
             break
 
     if not updated:
-        scores.append({"username": username, "user_id": user_id, "score": score})
+        scores.append({
+            "username": username,
+            "user_id": user_id,
+            "score": score,
+            "registered_at": datetime.datetime.now().isoformat()
+        })
         log_event(f"🆕 New user added: {username} (ID: {user_id}) with score {score}")
 
     save_scores(scores)
     backup_scores()
     return jsonify({"status": "ok"})
+
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -119,16 +134,33 @@ def register():
         "username": username,
         "user_id": user_id,
         "score": 0,
+        "registered_at": datetime.datetime.now().isoformat()
     }
 
-    if referrer_id:
+if referrer_id:
         new_user["referred_by"] = referrer_id
+        referrer = next((e for e in scores if e.get("user_id") == referrer_id), None)
+        if referrer:
+            referrer["score"] += 1000
+            new_user["score"] += 1000
+            if "referrals" not in referrer:
+                referrer["referrals"] = []
+            referrer["referrals"].append({
+                "ref_user_id": user_id,
+                "ref_username": username,
+                "timestamp": datetime.datetime.now().isoformat(),
+                "reward": 1000,
+                "before_score": referrer["score"] - 1000,
+                "after_score": referrer["score"]
+            })
+            log_event(f"🎁 Referral bonus: {referrer['username']} referred {username} – +1000 each")
 
     scores.append(new_user)
     save_scores(scores)
+    backup_scores()
     log_event(f"📝 Registered new user: {username} (ID: {user_id})")
-
     return jsonify({"status": "registered"})
+
 
 @app.route("/profile")
 def profile():
