@@ -164,13 +164,13 @@ def referral_history():
 @app.route("/leaderboard")
 def leaderboard():
     scores = load_scores()
-    sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
+    sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:25]
     return jsonify(sorted_scores)
 
 @app.route("/leaderboard-page")
 def leaderboard_page():
     scores = load_scores()
-    sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:10]
+    sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:25]
     current_user_id = request.args.get("user_id", "")
 
     html = """
