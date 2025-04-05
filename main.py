@@ -231,6 +231,7 @@ def leaderboard_page():
             </tr>
             {% endfor %}
         </table>
+        <div class="footer">showing {{ scores|length }}/{{ total }} players</div>
         {% else %}
         <p>No scores submitted yet.</p>
         {% endif %}
