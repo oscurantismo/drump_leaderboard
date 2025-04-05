@@ -187,6 +187,7 @@ def leaderboard_page():
                 padding: 20px;
                 color: #002868;
                 text-align: center;
+                position: relative;
             }
             h2 {
                 color: #b22234;
@@ -214,6 +215,14 @@ def leaderboard_page():
             tr:hover {
                 background-color: #f1f1f1;
             }
+            .footer {
+                text-align: right;
+                font-size: 13px;
+                font-style: italic;
+                color: #888;
+                margin-top: -40px;
+                margin-bottom: 20px;
+            }
             @keyframes flash {
                 from { background-color: #fff3cd; }
                 to { background-color: #ffeeba; }
@@ -233,14 +242,15 @@ def leaderboard_page():
             </tr>
             {% endfor %}
         </table>
-        <div class="footer">showing {{ scores|length }}/{{ total }} players</div>
+        <div class="footer">showing {{ scores|length }}/{{ total_players }} players</div>
         {% else %}
         <p>No scores submitted yet.</p>
         {% endif %}
     </body>
     </html>
     """
-    return render_template_string(html, scores=sorted_scores, current_user_id=current_user_id)
+    return render_template_string(html, scores=sorted_scores, current_user_id=current_user_id, total_players=total_players)
+
 
 @app.route("/referral-history-table")
 def referral_history_table():
