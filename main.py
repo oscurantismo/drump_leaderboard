@@ -489,23 +489,79 @@ def view_backups():
 
     return html
 
+
 @app.route("/debug-logs")
 def view_logs():
     if not os.path.exists(LOG_FILE):
-        return "<h3>No logs yet.</h3>"
+        log_html = "<p>No logs yet.</p>"
+    else:
+        with open(LOG_FILE, "r") as f:
+            log_content = f.read().replace("\n", "<br>")
+        log_html = f"<div>{log_content}</div>"
 
-    with open(LOG_FILE, "r") as f:
-        log_content = f.read().replace("\n", "<br>")
-
-    return f"""
+    return """
+    <!DOCTYPE html>
     <html>
-    <head><title>Debug Logs</title></head>
-    <body style="font-family: monospace; padding: 20px;">
-        <h2>🪵 Server Logs</h2>
-        <div>{log_content}</div>
+    <head>
+        <title>🪵 Debug Logs</title>
+        <style>
+            body {
+                font-family: monospace;
+                background: #f9f9f9;
+                padding: 20px;
+                color: #222;
+            }
+            h2 {
+                font-family: 'Arial Black', sans-serif;
+                color: #002868;
+            }
+            .nav-links {
+                margin-bottom: 20px;
+            }
+            .nav-links a {
+                display: inline-block;
+                margin-right: 12px;
+                margin-bottom: 10px;
+                padding: 8px 14px;
+                background: #007bff;
+                color: white;
+                text-decoration: none;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: bold;
+                transition: background 0.3s;
+            }
+            .nav-links a:hover {
+                background: #0056b3;
+            }
+            .log-box {
+                background: #fff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+                max-height: 600px;
+                overflow-y: scroll;
+                font-size: 13px;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>🪵 Debug Logs</h2>
+
+        <div class="nav-links">
+            <a href="/backups">📦 View Backups</a>
+            <a href="/leaderboard-page">🏆 Leaderboard</a>
+            <a href="/referral-history-table">📨 Referral History</a>
+            <a href="/user-logs">👥 User Logs</a>
+        </div>
+
+        <div class="log-box">
+            """ + log_html + """
+        </div>
     </body>
     </html>
     """
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
