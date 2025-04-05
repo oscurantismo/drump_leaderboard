@@ -137,7 +137,7 @@ def register():
         "registered_at": datetime.datetime.now().isoformat()
     }
 
-if referrer_id:
+    if referrer_id:
         new_user["referred_by"] = referrer_id
         referrer = next((e for e in scores if e.get("user_id") == referrer_id), None)
         if referrer:
@@ -160,7 +160,6 @@ if referrer_id:
     backup_scores()
     log_event(f"📝 Registered new user: {username} (ID: {user_id})")
     return jsonify({"status": "registered"})
-
 
 @app.route("/profile")
 def profile():
