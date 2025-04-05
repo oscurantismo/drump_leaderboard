@@ -64,19 +64,17 @@ def submit():
 
     for entry in scores:
         if entry.get("user_id") == user_id:
-            if score > entry["score"]:
-                old_score = entry["score"]
+            old_score = entry["score"]
+            if score > old_score:
                 entry["score"] = score
                 entry["username"] = username
 
-                # Apply 25% bonus every 100 punches
-                if score >= 100:
-                    bonus_trigger = score // 100
-                    bonus = round((bonus_trigger * 100) * 0.25)
-                    entry["score"] += bonus
-                    log_event(f"💥 Bonus: {username} reached {score}, +{bonus} bonus added")
+                # Check if a bonus should be applied for an exact milestone
+                if score % 100 == 0:
+                    entry["score"] += 25
+                    log_event(f"🎯 Milestone reached: {score} → +25 bonus punches for {username}")
 
-                # Referral reward if user passed 10 punches and hasn't rewarded yet
+                # Referral reward if user passed 10 punches
                 referrer_id = entry.get("referred_by")
                 if old_score < 10 <= score and referrer_id:
                     referrer = next((e for e in scores if e["user_id"] == referrer_id), None)
@@ -115,7 +113,6 @@ def submit():
     save_scores(scores)
     backup_scores()
     return jsonify({"status": "ok"})
-
 
 @app.route("/register", methods=["POST"])
 def register():
