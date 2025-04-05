@@ -170,8 +170,10 @@ def leaderboard():
 @app.route("/leaderboard-page")
 def leaderboard_page():
     scores = load_scores()
-    sorted_scores = sorted(scores, key=lambda x: x["score"], reverse=True)[:25]
+    filtered_scores = [s for s in scores if s.get("score", 0) > 0]
+    sorted_scores = sorted(filtered_scores, key=lambda x: x["score"], reverse=True)[:25]
     current_user_id = request.args.get("user_id", "")
+    total_players = len(filtered_scores)
 
     html = """
     <!DOCTYPE html>
