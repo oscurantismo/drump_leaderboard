@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template_string, send_file
+from flask import Blueprint, render_template_string, send_from_directory, request, abort
 from utils.storage import load_scores, BACKUP_FOLDER
 from utils.logging import log_event
 import os
@@ -15,26 +15,26 @@ def view_logs():
             log_content = f.read().replace("\n", "<br>")
         log_html = f"<div>{log_content}</div>"
 
-    return """
+    return f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>🪵 Debug Logs</title>
         <style>
-            body {
+            body {{
                 font-family: monospace;
                 background: #f9f9f9;
                 padding: 20px;
                 color: #222;
-            }
-            h2 {
+            }}
+            h2 {{
                 font-family: 'Arial Black', sans-serif;
                 color: #002868;
-            }
-            .nav-links {
+            }}
+            .nav-links {{
                 margin-bottom: 20px;
-            }
-            .nav-links a {
+            }}
+            .nav-links a {{
                 display: inline-block;
                 margin-right: 12px;
                 margin-bottom: 10px;
@@ -46,11 +46,11 @@ def view_logs():
                 font-size: 14px;
                 font-weight: bold;
                 transition: background 0.3s;
-            }
-            .nav-links a:hover {
+            }}
+            .nav-links a:hover {{
                 background: #0056b3;
-            }
-            .log-box {
+            }}
+            .log-box {{
                 background: #fff;
                 padding: 20px;
                 border-radius: 8px;
@@ -58,7 +58,7 @@ def view_logs():
                 max-height: 600px;
                 overflow-y: scroll;
                 font-size: 13px;
-            }
+            }}
         </style>
     </head>
     <body>
@@ -72,7 +72,7 @@ def view_logs():
         </div>
 
         <div class="log-box">
-            """ + log_html + """
+            {log_html}
         </div>
     </body>
     </html>
@@ -81,16 +81,24 @@ def view_logs():
 @log_routes.route("/download-backup")
 def download_backup():
     filename = request.args.get("file")
-    if not filename or not filename.endswith(".json"):
-        return "Invalid filename", 400
-    filepath = os.path.join(BACKUP_FOLDER, filename)
-    if not os.path.exists(filepath):
-        return "File not found", 404
-    return send_file(filepath, as_attachment=True)
+
+    # Basic validation
+    if not filename or not filename.endswith(".json") or "/" in filename or "\\" in filename:
+        return abort(400, "Invalid filename")
+
+    full_path = os.path.join(BACKUP_FOLDER, filename)
+    if not os.path.exists(full_path):
+        return abort(404, "File not found")
+
+    return send_from_directory(BACKUP_FOLDER, filename, as_attachment=True)
 
 @log_routes.route("/backups")
 def view_backups():
-    files = sorted(os.listdir(BACKUP_FOLDER), reverse=True)
+    try:
+        files = sorted(os.listdir(BACKUP_FOLDER), reverse=True)
+    except Exception as e:
+        return f"<p>❌ Could not read backup directory: {e}</p>"
+
     json_files = [f for f in files if f.endswith(".json")]
 
     html = """
