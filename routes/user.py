@@ -111,7 +111,6 @@ def submit():
         log_event(f"🆕 New user added: {username} (ID: {user_id}) with score {score}")
 
     save_scores(scores)
-    backup_scores()
     return jsonify({"status": "ok"})
 
 
