@@ -4,6 +4,7 @@ import logging
 import sys
 import os
 
+
 # ✅ Ensure logs print immediately to Railway logs panel
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
@@ -14,6 +15,9 @@ from routes.referral import referral_routes
 from routes.logging import log_routes
 from utils.logging import log_event
 from utils.storage import backup_scores
+from routes.admin import admin_routes
+app.register_blueprint(admin_routes)
+
 
 # Scheduler setup
 from flask_apscheduler import APScheduler
