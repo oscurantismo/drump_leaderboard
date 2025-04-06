@@ -1,14 +1,14 @@
-from flask import Flask
 from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app, origins=["https://oscurantismo.github.io"])  # ✅ Explicitly allow GitHub Pages
+
 
 # Import route blueprints
 from routes.user import user_routes
 from routes.leaderboard import leaderboard_routes
 from routes.referral import referral_routes
 from routes.logging import log_routes
-
-app = Flask(__name__)
-CORS(app)
 
 # Register blueprints
 app.register_blueprint(user_routes)
