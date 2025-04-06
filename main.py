@@ -1,5 +1,10 @@
 from flask import Flask
 from flask_cors import CORS
+import logging
+import sys
+
+# ✅ Ensure logs print immediately to Railway logs panel
+logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
 # Import blueprints
 from routes.user import user_routes
