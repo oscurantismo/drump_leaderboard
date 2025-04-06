@@ -13,13 +13,8 @@ def ensure_file():
         log_event("✅ Created new scores.json")
 
 def load_scores():
-    ensure_file()
-    with open(DATA_FILE, "r") as f:
-        try:
-            return json.load(f)
-        except json.JSONDecodeError:
-            log_event("❌ Failed to decode JSON")
-            return []
+    raise Exception("💥 Simulated failure")
+
 
 def save_scores(scores):
     with open(DATA_FILE, "w") as f:
