@@ -5,6 +5,15 @@ import os
 
 log_routes = Blueprint("log_routes", __name__)
 
+@log_routes.route("/download-logs")
+def download_logs():
+    log_path = "/app/data/logs.txt"
+    if not os.path.exists(log_path):
+        return "❌ No logs.txt file found."
+
+    from flask import send_file
+    return send_file(log_path, as_attachment=True)
+
 @log_routes.route("/debug-logs")
 def view_logs():
     log_path = "/app/data/logs.txt"
