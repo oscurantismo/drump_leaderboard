@@ -16,7 +16,6 @@ from routes.logging import log_routes
 from utils.logging import log_event
 from utils.storage import backup_scores
 from routes.admin import admin_routes
-app.register_blueprint(admin_routes)
 
 
 # Scheduler setup
@@ -44,6 +43,7 @@ app.register_blueprint(user_routes)
 app.register_blueprint(leaderboard_routes)
 app.register_blueprint(referral_routes)
 app.register_blueprint(log_routes)
+app.register_blueprint(admin_routes)
 log_event("✅ All blueprints registered")
 
 # ✅ Scheduled backup every 6 hours
