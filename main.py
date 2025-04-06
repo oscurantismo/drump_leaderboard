@@ -1,20 +1,36 @@
+from flask import Flask
 from flask_cors import CORS
 
-app = Flask(__name__)
-CORS(app, origins=["https://oscurantismo.github.io"])  # ✅ Explicitly allow GitHub Pages
-
-
-# Import route blueprints
+# Import blueprints
 from routes.user import user_routes
 from routes.leaderboard import leaderboard_routes
 from routes.referral import referral_routes
 from routes.logging import log_routes
+from utils.logging import log_event
 
-# Register blueprints
+app = Flask(__name__)
+
+# ✅ Add logging to app boot
+log_event("🚀 Initializing Flask app")
+
+try:
+    CORS(app, origins=["https://oscurantismo.github.io"])
+    log_event("✅ CORS applied for GitHub Pages")
+except Exception as e:
+    log_event(f"❌ CORS setup failed: {e}")
+
+# Register routes
 app.register_blueprint(user_routes)
 app.register_blueprint(leaderboard_routes)
 app.register_blueprint(referral_routes)
 app.register_blueprint(log_routes)
+log_event("✅ All blueprints registered")
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    try:
+        log_event(f"🟢 Starting Flask app on port {port}")
+        app.run(debug=False, host="0.0.0.0", port=port)
+    except Exception as e:
+        log_event(f"❌ Server crashed during startup: {e}")
