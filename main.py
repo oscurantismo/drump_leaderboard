@@ -74,28 +74,42 @@ def submit():
                     entry["score"] += 25
                     log_event(f"🎯 Milestone reached: {score} → +25 bonus punches for {username}")
 
-                # Referral reward if user passed 10 punches
+                # Referral reward if invitee reaches 20 punches
                 referrer_id = entry.get("referred_by")
-                if old_score < 10 <= score and referrer_id:
+                if old_score < 20 <= score and referrer_id and not entry.get("referral_reward_issued"):
                     referrer = next((e for e in scores if e["user_id"] == referrer_id), None)
                     if referrer:
                         reward = 1000
-                        old_ref_score = referrer["score"]
-                        referrer["score"] += reward
+                        referrer_old = referrer["score"]
+                        referred_old = entry["score"]
 
-                        if "referrals" not in referrer:
-                            referrer["referrals"] = []
+                        # Prevent duplicate entries in referral history
+                        existing_referral = any(
+                            r.get("ref_user_id") == user_id
+                            for r in referrer.get("referrals", [])
+                        )
 
-                        referrer["referrals"].append({
-                            "ref_user_id": user_id,
-                            "ref_username": username,
-                            "timestamp": datetime.datetime.now().isoformat(),
-                            "reward": reward,
-                            "before_score": old_ref_score,
-                            "after_score": referrer["score"]
-                        })
+                        if not existing_referral:
+                            referrer["score"] += reward
+                            entry["score"] += reward
+                            entry["referral_reward_issued"] = True
+                            entry["referral_reward_time"] = datetime.datetime.now().isoformat()
 
-                        log_event(f"🎉 Referral bonus: {referrer['username']} (ID: {referrer_id}) +{reward} punches for {username}")
+                            if "referrals" not in referrer:
+                                referrer["referrals"] = []
+
+                            referrer["referrals"].append({
+                                "ref_user_id": user_id,
+                                "ref_username": username,
+                                "timestamp": entry["referral_reward_time"],
+                                "reward": reward,
+                                "before_score": referrer_old,
+                                "after_score": referrer["score"]
+                            })
+
+                            log_event(f"🎉 Referral bonus issued: {referrer['username']} and {username} +{reward} each at 20 punches")
+                        else:
+                            log_event(f"⛔ Duplicate referral ignored: {referrer['username']} already rewarded for referring {username}")
 
                 log_event(f"✅ Updated score for {username} (ID: {user_id}) to {entry['score']}")
             updated = True
@@ -136,27 +150,14 @@ def register():
 
     if referrer_id:
         new_user["referred_by"] = referrer_id
-        referrer = next((e for e in scores if e.get("user_id") == referrer_id), None)
-        if referrer:
-            referrer["score"] += 1000
-            new_user["score"] += 1000
-            if "referrals" not in referrer:
-                referrer["referrals"] = []
-            referrer["referrals"].append({
-                "ref_user_id": user_id,
-                "ref_username": username,
-                "timestamp": datetime.datetime.now().isoformat(),
-                "reward": 1000,
-                "before_score": referrer["score"] - 1000,
-                "after_score": referrer["score"]
-            })
-            log_event(f"🎁 Referral bonus: {referrer['username']} referred {username} – +1000 each")
+        log_event(f"🧾 {username} was referred by {referrer_id}")
 
     scores.append(new_user)
     save_scores(scores)
     backup_scores()
     log_event(f"📝 Registered new user: {username} (ID: {user_id})")
     return jsonify({"status": "registered"})
+
 
 @app.route("/profile")
 def profile():
@@ -172,7 +173,8 @@ def profile():
 
     return jsonify({
         "username": entry["username"],
-        "punches": entry["score"]
+        "punches": entry["score"],
+        "already_claimed_referral": bool(entry.get("referral_reward_issued", False))
     })
 
 @app.route("/referral-history")
