@@ -1,10 +1,13 @@
 import os
 import json
 import fcntl
+import time
 from .logging import log_event
 
 DATA_FILE = "/app/data/scores.json"
 BACKUP_FOLDER = "/app/data/backups"
+_last_backup_time = 0
+
 
 def ensure_file():
     if not os.path.exists(DATA_FILE):
@@ -12,6 +15,7 @@ def ensure_file():
         with open(DATA_FILE, "w") as f:
             json.dump([], f)
         log_event("✅ Created new scores.json")
+
 
 def load_scores():
     ensure_file()
@@ -23,7 +27,30 @@ def load_scores():
             return data
         except json.JSONDecodeError as e:
             log_event(f"❌ Failed to decode JSON: {e}")
-            return []
+
+    # 🔁 Try auto-restore from latest good backup
+    try:
+        backups = sorted([
+            f for f in os.listdir(BACKUP_FOLDER)
+            if f.startswith("leaderboard_backup_") and f.endswith(".json")
+        ], reverse=True)
+
+        for backup_file in backups:
+            path = os.path.join(BACKUP_FOLDER, backup_file)
+            try:
+                with open(path, "r") as b:
+                    data = json.load(b)
+                with open(DATA_FILE, "w") as w:
+                    json.dump(data, w, indent=2)
+                log_event(f"♻️ Restored scores.json from backup: {backup_file}")
+                return data
+            except Exception as inner:
+                log_event(f"⚠️ Skipped invalid backup {backup_file}: {inner}")
+    except Exception as outer:
+        log_event(f"❌ Failed to restore from backup: {outer}")
+
+    return []
+
 
 def save_scores(scores):
     temp_path = DATA_FILE + ".tmp"
@@ -35,15 +62,11 @@ def save_scores(scores):
         fcntl.flock(f, fcntl.LOCK_UN)
     os.replace(temp_path, DATA_FILE)
 
-# Optional: add delay to avoid overlap on startup or heavy traffic
-_last_backup_time = 0
 
 def backup_scores():
-    import time
     global _last_backup_time
     now = time.time()
 
-    # avoid backups more than once per minute (adjust as needed)
     if now - _last_backup_time < 60:
         log_event("⏳ Skipping backup (too soon after last one)")
         return
