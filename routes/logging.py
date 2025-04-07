@@ -29,27 +29,55 @@ def download_current_leaderboard():
         log_event(f"❌ Failed to download leaderboard: {e}")
         return f"❌ Failed to download leaderboard: {e}", 500
 
-@log_routes.route("/replace-latest-backup")
+@log_routes.route("/replace-latest-backup", methods=["GET", "POST"])
 def replace_latest_backup():
+    if request.method == "POST":
+        uploaded_file = request.files.get("file")
+        if not uploaded_file or not uploaded_file.filename.endswith(".json"):
+            return "❌ Please upload a valid .json file."
+        try:
+            data = json.load(uploaded_file)
+            files = sorted(
+                [f for f in os.listdir(BACKUP_FOLDER) if f.endswith(".json")], reverse=True
+            )
+            if not files:
+                return "❌ No backup file found to replace."
+
+            latest_file = files[0]
+            replaced_path = os.path.join(BACKUP_FOLDER, latest_file)
+            with open(replaced_path, "w") as f:
+                json.dump(data, f, indent=2)
+            log_event(f"♻️ Replaced latest backup with uploaded content: {latest_file}")
+            return redirect(url_for("log_routes.view_backups"))
+        except Exception as e:
+            log_event(f"❌ Failed to replace backup: {e}")
+            return f"❌ Failed to replace backup: {e}"
+
+    return """
+    <h2>♻️ Replace Latest Backup</h2>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".json" required>
+        <button type="submit">Replace</button>
+    </form>
+    """
+
+@log_routes.route("/delete-backup", methods=["POST"])
+def delete_backup():
+    filename = request.form.get("filename")
+    confirm = request.form.get("confirm")
+    if not filename or confirm != "DELETE":
+        return "❌ Confirmation keyword missing or incorrect."
+
+    full_path = os.path.join(BACKUP_FOLDER, filename)
+    if not os.path.exists(full_path):
+        return "❌ File not found."
+
     try:
-        files = sorted(
-            [f for f in os.listdir(BACKUP_FOLDER) if f.endswith(".json")], reverse=True
-        )
-        if not files:
-            return "❌ No backup file found to replace."
-
-        latest_file = files[0]
-        current_scores = load_scores()
-
-        replaced_path = os.path.join(BACKUP_FOLDER, latest_file)
-        with open(replaced_path, "w") as f:
-            json.dump(current_scores, f, indent=2)
-
-        log_event(f"♻️ Replaced latest backup with fresh scores: {latest_file}")
-        return f"✅ Replaced backup: {latest_file}"
+        os.remove(full_path)
+        log_event(f"🗑 Deleted backup file: {filename}")
+        return redirect(url_for("log_routes.view_backups"))
     except Exception as e:
-        log_event(f"❌ Failed to replace backup: {e}")
-        return f"❌ Failed to replace backup: {e}"
+        return f"❌ Failed to delete file: {e}"
 
 @log_routes.route("/upload-backup", methods=["GET", "POST"])
 def upload_backup():
@@ -220,6 +248,10 @@ def view_backups():
             a.download-btn:hover {
                 background: #0056b3;
             }
+            form.delete-form {
+                display: inline;
+                margin-left: 10px;
+            }
         </style>
     </head>
     <body>
@@ -231,7 +263,12 @@ def view_backups():
         html += f"""
         <li>
             {filename}
-            <a class="download-btn" href="/download-backup?file={filename}">Download</a>
+            <a class=\"download-btn\" href=\"/download-backup?file={filename}\">Download</a>
+            <form class=\"delete-form\" method=\"POST\" action=\"/delete-backup\" onsubmit=\"return confirm('Type DELETE to confirm deletion of {filename}');\">
+                <input type=\"hidden\" name=\"filename\" value=\"{filename}\">
+                <input type=\"text\" name=\"confirm\" placeholder=\"Type DELETE\" required>
+                <button type=\"submit\">Delete</button>
+            </form>
         </li>
         """
 
