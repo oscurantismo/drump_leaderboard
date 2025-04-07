@@ -17,10 +17,8 @@ def load_scores():
     ensure_file()
     with open(DATA_FILE, "r") as f:
         try:
-            # Obtain a shared lock for reading
             fcntl.flock(f, fcntl.LOCK_SH)
             data = json.load(f)
-            # Release the lock
             fcntl.flock(f, fcntl.LOCK_UN)
             return data
         except json.JSONDecodeError as e:
@@ -29,17 +27,28 @@ def load_scores():
 
 def save_scores(scores):
     temp_path = DATA_FILE + ".tmp"
-    # Write to a temporary file first with an exclusive lock
     with open(temp_path, "w") as f:
         fcntl.flock(f, fcntl.LOCK_EX)
         json.dump(scores, f, indent=2)
         f.flush()
         os.fsync(f.fileno())
         fcntl.flock(f, fcntl.LOCK_UN)
-    # Atomically replace the original file with the temporary file
     os.replace(temp_path, DATA_FILE)
 
+# Optional: add delay to avoid overlap on startup or heavy traffic
+_last_backup_time = 0
+
 def backup_scores():
+    import time
+    global _last_backup_time
+    now = time.time()
+
+    # avoid backups more than once per minute (adjust as needed)
+    if now - _last_backup_time < 60:
+        log_event("⏳ Skipping backup (too soon after last one)")
+        return
+
+    _last_backup_time = now
     os.makedirs(BACKUP_FOLDER, exist_ok=True)
     from datetime import datetime
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
