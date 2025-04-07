@@ -33,3 +33,15 @@ def restore_backup():
     except Exception as e:
         log_event(f"❌ Restore failed: {e}")
         return f"❌ Restore failed: {e}"
+
+@admin_routes.route("/upload-scores", methods=["POST"])
+def upload_scores():
+    try:
+        data = request.get_json()
+        with open(DATA_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+        log_event("✅ scores.json manually uploaded via /upload-scores")
+        return "✅ Uploaded new scores.json", 200
+    except Exception as e:
+        log_event(f"❌ Upload failed: {e}")
+        return f"❌ Upload failed: {e}", 500
