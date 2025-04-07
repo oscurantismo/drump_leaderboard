@@ -36,11 +36,12 @@ def restore_backup():
         return f"❌ Restore failed: {e}"
 
 @admin_routes.route("/upload-scores", methods=["POST"])
+@admin_routes.route("/upload-scores", methods=["POST"])
 def upload_scores():
     try:
-        file_data = request.data
+        file_data = request.data  # get raw binary data (even broken JSON)
         with open(DATA_FILE, "wb") as f:
-            f.write(file_data)
+            f.write(file_data)  # write raw data directly to scores.json
         log_event("⚠️ Directly wrote raw uploaded data to scores.json (crash test)")
         return "✅ Uploaded new scores.json", 200
     except Exception as e:
