@@ -8,14 +8,12 @@ DATA_FILE = "/app/data/scores.json"
 BACKUP_FOLDER = "/app/data/backups"
 _last_backup_time = 0
 
-
 def ensure_file():
     if not os.path.exists(DATA_FILE):
         os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
         with open(DATA_FILE, "w") as f:
             json.dump([], f)
         log_event("✅ Created new scores.json")
-
 
 def load_scores():
     ensure_file()
@@ -28,11 +26,11 @@ def load_scores():
         except json.JSONDecodeError as e:
             log_event(f"❌ Failed to decode JSON: {e}")
 
-    # 🔁 Try auto-restore from latest good backup
+    # 🔁 Try auto-restore from latest good backup, including manual
     try:
         backups = sorted([
             f for f in os.listdir(BACKUP_FOLDER)
-            if f.startswith("leaderboard_backup_") and f.endswith(".json")
+            if f.endswith(".json")
         ], reverse=True)
 
         for backup_file in backups:
@@ -51,7 +49,6 @@ def load_scores():
 
     return []
 
-
 def save_scores(scores):
     temp_path = DATA_FILE + ".tmp"
     with open(temp_path, "w") as f:
@@ -61,7 +58,6 @@ def save_scores(scores):
         os.fsync(f.fileno())
         fcntl.flock(f, fcntl.LOCK_UN)
     os.replace(temp_path, DATA_FILE)
-
 
 def backup_scores():
     global _last_backup_time
