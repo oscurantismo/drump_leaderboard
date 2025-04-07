@@ -29,6 +29,28 @@ def download_current_leaderboard():
         log_event(f"❌ Failed to download leaderboard: {e}")
         return f"❌ Failed to download leaderboard: {e}", 500
 
+@log_routes.route("/replace-latest-backup")
+def replace_latest_backup():
+    try:
+        files = sorted(
+            [f for f in os.listdir(BACKUP_FOLDER) if f.endswith(".json")], reverse=True
+        )
+        if not files:
+            return "❌ No backup file found to replace."
+
+        latest_file = files[0]
+        current_scores = load_scores()
+
+        replaced_path = os.path.join(BACKUP_FOLDER, latest_file)
+        with open(replaced_path, "w") as f:
+            json.dump(current_scores, f, indent=2)
+
+        log_event(f"♻️ Replaced latest backup with fresh scores: {latest_file}")
+        return f"✅ Replaced backup: {latest_file}"
+    except Exception as e:
+        log_event(f"❌ Failed to replace backup: {e}")
+        return f"❌ Failed to replace backup: {e}"
+
 @log_routes.route("/upload-backup", methods=["GET", "POST"])
 def upload_backup():
     if request.method == "POST":
@@ -37,10 +59,17 @@ def upload_backup():
             return "❌ Please upload a valid .json file."
 
         try:
+            # Create a backup before replacing
+            existing_data = load_scores()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_path = os.path.join(BACKUP_FOLDER, f"auto_backup_before_upload_{timestamp}.json")
+            with open(backup_path, "w") as f:
+                json.dump(existing_data, f, indent=2)
+
             data = json.load(uploaded_file)
             with open(DATA_FILE, "w") as f:
                 json.dump(data, f, indent=2)
-            log_event("✅ scores.json restored from uploaded backup")
+            log_event("✅ scores.json restored from uploaded backup (with pre-upload backup)")
             return redirect(url_for("log_routes.view_logs"))
         except Exception as e:
             log_event(f"❌ Failed to restore from upload: {e}")
@@ -121,6 +150,7 @@ def view_logs():
             <a href="/download-logs">⬇️ Download Logs</a>
             <a href="/download-current-leaderboard">📥 Backup Leaderboard</a>
             <a href="/upload-backup">⬆️ Upload Leaderboard</a>
+            <a href="/replace-latest-backup">♻️ Replace Latest Backup</a>
         </div>
 
         <div class="log-box">
