@@ -40,10 +40,8 @@ def upload_scores():
     try:
         file_data = request.data
         with open(DATA_FILE, "wb") as f:
-        f.write(file_data)
+            f.write(file_data)
         log_event("⚠️ Directly wrote raw uploaded data to scores.json (crash test)")
-
-        log_event("✅ scores.json manually uploaded via /upload-scores")
         return "✅ Uploaded new scores.json", 200
     except Exception as e:
         log_event(f"❌ Upload failed: {e}")
