@@ -59,11 +59,11 @@ def save_scores(scores):
         fcntl.flock(f, fcntl.LOCK_UN)
     os.replace(temp_path, DATA_FILE)
 
-def backup_scores():
+def backup_scores(tag=None):
     global _last_backup_time
     now = time.time()
 
-    if now - _last_backup_time < 60:
+    if now - _last_backup_time < 60 and tag is None:
         log_event("⏳ Skipping backup (too soon after last one)")
         return
 
@@ -71,8 +71,10 @@ def backup_scores():
     os.makedirs(BACKUP_FOLDER, exist_ok=True)
     from datetime import datetime
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = os.path.join(BACKUP_FOLDER, f"leaderboard_backup_{timestamp}.json")
+    suffix = f"_{tag}" if tag else ""
+    backup_path = os.path.join(BACKUP_FOLDER, f"leaderboard_backup_{timestamp}{suffix}.json")
     scores = load_scores()
     with open(backup_path, "w") as f:
         json.dump(scores, f, indent=2)
     log_event(f"💾 Backup saved: {backup_path}")
+
