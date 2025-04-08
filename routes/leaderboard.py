@@ -4,6 +4,12 @@ from utils.logging import log_event
 
 leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
+@leaderboard_routes.route("/leaderboard")
+def get_leaderboard():
+    scores = load_scores()
+    sorted_scores = sorted(scores, key=lambda x: x.get("score", 0), reverse=True)
+    return jsonify(sorted_scores)
+
 @leaderboard_routes.route("/leaderboard-page")
 def leaderboard_page():
     try:
