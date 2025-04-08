@@ -24,7 +24,7 @@ def load_scores():
             fcntl.flock(f, fcntl.LOCK_UN)
             return data
         except json.JSONDecodeError as e:
-            log_event(f"❌ Failed to decode JSON: {e}")
+            log_event(f"❌ Failed to decode scores.json: {e} (Path: {DATA_FILE})")
 
     # 🔁 Try auto-restore from latest good backup, including manual
     try:
