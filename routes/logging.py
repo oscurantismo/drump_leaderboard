@@ -138,7 +138,7 @@ def view_logs():
 
         <pre id="jsonPreview" style="background:#f0f0f0;padding:10px;border-radius:6px;max-height:200px;overflow:auto;font-size:13px;"></pre>
 
-        <form action="/manual-backup" method="post" style="margin-bottom: 30px;">
+        <form action="/download-backup" method="post" style="margin-bottom: 30px;">
             <h4>💾 Save Manual Backup</h4>
             <button type="submit">Create Manual Backup</button>
         </form>
