@@ -85,7 +85,7 @@ def leaderboard_page():
                 </tr>
                 {% endfor %}
             </table>
-            <div class="footer">showing {{ scores|length }}/ 52 players</div>
+            <div class="footer">showing {{ scores|length }}/73 players</div>
             {% else %}
             <div style="margin-top: 40px; font-size: 20px;">
                 🤖<br><br>
