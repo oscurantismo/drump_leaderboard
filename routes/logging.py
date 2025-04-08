@@ -1,12 +1,46 @@
-from flask import Blueprint, render_template_string, send_from_directory, request, abort, send_file, redirect, url_for
-from utils.storage import load_scores, BACKUP_FOLDER, DATA_FILE
-from utils.logging import log_event
-from datetime import datetime
 import os
 import json
+from flask import (
+    Blueprint, request, abort, send_file, send_from_directory,
+    session, redirect, url_for, render_template_string
+)
+from utils.storage import load_scores, BACKUP_FOLDER
+from utils.logging import log_event
 
 log_routes = Blueprint("log_routes", __name__)
 
+# === Login Protection ===
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "changeme")
+
+@log_routes.before_request
+def require_login():
+    exempt_paths = {"/login"}
+    if request.path in exempt_paths:
+        return
+    if not session.get("logged_in"):
+        return redirect(url_for("log_routes.login"))
+
+@log_routes.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        if (request.form.get("username") == ADMIN_USERNAME and
+                request.form.get("password") == ADMIN_PASSWORD):
+            session["logged_in"] = True
+            return redirect(url_for("log_routes.view_logs"))
+        else:
+            return "❌ Invalid login", 401
+
+    return '''
+        <form method="post">
+            <h3>🔐 Admin Login</h3>
+            <input name="username" placeholder="Username" required>
+            <input name="password" type="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+    '''
+
+# === Download Logs ===
 @log_routes.route("/download-logs")
 def download_logs():
     log_path = "/app/data/logs.txt"
@@ -14,106 +48,12 @@ def download_logs():
         return "❌ No logs.txt file found."
     return send_file(log_path, as_attachment=True)
 
-@log_routes.route("/download-current-leaderboard")
-def download_current_leaderboard():
-    try:
-        scores = load_scores()
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"leaderboard_manual_backup_{timestamp}.json"
-        backup_path = os.path.join(BACKUP_FOLDER, filename)
-        with open(backup_path, "w") as f:
-            json.dump(scores, f, indent=2)
-        log_event(f"📥 Manual download of current leaderboard: {filename}")
-        return send_file(backup_path, as_attachment=True)
-    except Exception as e:
-        log_event(f"❌ Failed to download leaderboard: {e}")
-        return f"❌ Failed to download leaderboard: {e}", 500
-
-@log_routes.route("/replace-latest-backup", methods=["GET", "POST"])
-def replace_latest_backup():
-    if request.method == "POST":
-        uploaded_file = request.files.get("file")
-        if not uploaded_file or not uploaded_file.filename.endswith(".json"):
-            return "❌ Please upload a valid .json file."
-        try:
-            data = json.load(uploaded_file)
-            files = sorted(
-                [f for f in os.listdir(BACKUP_FOLDER) if f.endswith(".json")], reverse=True
-            )
-            if not files:
-                return "❌ No backup file found to replace."
-
-            latest_file = files[0]
-            replaced_path = os.path.join(BACKUP_FOLDER, latest_file)
-            with open(replaced_path, "w") as f:
-                json.dump(data, f, indent=2)
-            log_event(f"♻️ Replaced latest backup with uploaded content: {latest_file}")
-            return redirect(url_for("log_routes.view_backups"))
-        except Exception as e:
-            log_event(f"❌ Failed to replace backup: {e}")
-            return f"❌ Failed to replace backup: {e}"
-
-    return """
-    <h2>♻️ Replace Latest Backup</h2>
-    <form method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".json" required>
-        <button type="submit">Replace</button>
-    </form>
-    """
-
-@log_routes.route("/delete-backup", methods=["POST"])
-def delete_backup():
-    filename = request.form.get("filename")
-    confirm = request.form.get("confirm")
-    if not filename or confirm != "DELETE":
-        return "❌ Confirmation keyword missing or incorrect."
-
-    full_path = os.path.join(BACKUP_FOLDER, filename)
-    if not os.path.exists(full_path):
-        return "❌ File not found."
-
-    try:
-        os.remove(full_path)
-        log_event(f"🗑 Deleted backup file: {filename}")
-        return redirect(url_for("log_routes.view_backups"))
-    except Exception as e:
-        return f"❌ Failed to delete file: {e}"
-
-@log_routes.route("/upload-backup", methods=["GET", "POST"])
-def upload_backup():
-    if request.method == "POST":
-        uploaded_file = request.files.get("file")
-        if not uploaded_file or not uploaded_file.filename.endswith(".json"):
-            return "❌ Please upload a valid .json file."
-
-        try:
-            # Create a backup before replacing
-            existing_data = load_scores()
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            backup_path = os.path.join(BACKUP_FOLDER, f"auto_backup_before_upload_{timestamp}.json")
-            with open(backup_path, "w") as f:
-                json.dump(existing_data, f, indent=2)
-
-            data = json.load(uploaded_file)
-            with open(DATA_FILE, "w") as f:
-                json.dump(data, f, indent=2)
-            log_event("✅ scores.json restored from uploaded backup (with pre-upload backup)")
-            return redirect(url_for("log_routes.view_logs"))
-        except Exception as e:
-            log_event(f"❌ Failed to restore from upload: {e}")
-            return f"❌ Failed to restore from uploaded backup: {e}"
-
-    return """
-    <h2>⬆️ Upload Backup</h2>
-    <form method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".json" required>
-        <button type="submit">Upload & Restore</button>
-    </form>
-    """
-
+# === View Logs Page ===
 @log_routes.route("/debug-logs")
 def view_logs():
     log_path = "/app/data/logs.txt"
+    debug_enabled = request.args.get("debug") == "true"
+
     if not os.path.exists(log_path):
         log_html = "<p>No logs yet.</p>"
     else:
@@ -134,7 +74,6 @@ def view_logs():
                 color: #222;
             }}
             h2 {{
-                font-family: 'Arial Black', sans-serif;
                 color: #002868;
             }}
             .nav-links {{
@@ -175,11 +114,17 @@ def view_logs():
             <a href="/leaderboard-page">🏆 Leaderboard</a>
             <a href="/referral-history-table">📨 Referral History</a>
             <a href="/user-logs">👥 User Logs</a>
-            <a href="/download-logs">⬇️ Download Logs</a>
-            <a href="/download-current-leaderboard">📥 Backup Leaderboard</a>
-            <a href="/upload-backup">⬆️ Upload Leaderboard</a>
-            <a href="/replace-latest-backup">♻️ Replace Latest Backup</a>
+            <a href="/download-logs">⬇️ Download logs.txt</a>
         </div>
+
+        {''
+        if not debug_enabled else '''
+        <form action="/upload-scores" method="post" enctype="application/json" style="margin-bottom: 20px;">
+            <h4>🧪 Crash Test Upload</h4>
+            <input type="file" name="file" accept=".json" required>
+            <button type="submit">Upload raw scores.json</button>
+        </form>
+        '''}
 
         <div class="log-box">
             {log_html}
@@ -188,6 +133,7 @@ def view_logs():
     </html>
     """
 
+# === Download Backup Files ===
 @log_routes.route("/download-backup")
 def download_backup():
     filename = request.args.get("file")
@@ -198,6 +144,7 @@ def download_backup():
         return abort(404, "File not found")
     return send_from_directory(BACKUP_FOLDER, filename, as_attachment=True)
 
+# === View Available Backups ===
 @log_routes.route("/backups")
 def view_backups():
     try:
@@ -213,20 +160,20 @@ def view_backups():
     <head>
         <title>📦 Backups</title>
         <style>
-            body {
+            body {{
                 font-family: Arial, sans-serif;
                 background: #f4f4f4;
                 padding: 20px;
                 color: #333;
-            }
-            h2 {
+            }}
+            h2 {{
                 color: #0047ab;
-            }
-            ul {
+            }}
+            ul {{
                 list-style: none;
                 padding: 0;
-            }
-            li {
+            }}
+            li {{
                 background: #fff;
                 margin-bottom: 10px;
                 padding: 10px 15px;
@@ -235,8 +182,8 @@ def view_backups():
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-            }
-            a.download-btn {
+            }}
+            .btn {{
                 background: #007bff;
                 color: #fff;
                 padding: 6px 12px;
@@ -244,14 +191,10 @@ def view_backups():
                 border-radius: 6px;
                 font-weight: bold;
                 transition: background 0.3s;
-            }
-            a.download-btn:hover {
+            }}
+            .btn:hover {{
                 background: #0056b3;
-            }
-            form.delete-form {
-                display: inline;
-                margin-left: 10px;
-            }
+            }}
         </style>
     </head>
     <body>
@@ -263,12 +206,7 @@ def view_backups():
         html += f"""
         <li>
             {filename}
-            <a class=\"download-btn\" href=\"/download-backup?file={filename}\">Download</a>
-            <form class=\"delete-form\" method=\"POST\" action=\"/delete-backup\" onsubmit=\"return confirm('Type DELETE to confirm deletion of {filename}');\">
-                <input type=\"hidden\" name=\"filename\" value=\"{filename}\">
-                <input type=\"text\" name=\"confirm\" placeholder=\"Type DELETE\" required>
-                <button type=\"submit\">Delete</button>
-            </form>
+            <a class="btn" href="/download-backup?file={filename}">Download</a>
         </li>
         """
 
