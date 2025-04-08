@@ -58,7 +58,7 @@ def leaderboard_page():
                     width: 100%;
                     border-collapse: collapse;
                     margin-top: 10px;
-                    margin-bottom: 60px;
+                    margin-bottom: 180px;
                 }
                 th, td {
                     padding: 12px;
