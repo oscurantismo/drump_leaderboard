@@ -8,6 +8,15 @@ leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 def get_leaderboard():
     scores = load_scores()
     sorted_scores = sorted(scores, key=lambda x: x.get("score", 0), reverse=True)
+    
+    # Add display names
+    for entry in sorted_scores:
+        entry["display_name"] = (
+            entry.get("first_name") or
+            entry.get("last_name") or
+            entry.get("username") or
+            "Anonymous"
+        )
     return jsonify(sorted_scores)
 
 @leaderboard_routes.route("/leaderboard-page")
@@ -18,6 +27,15 @@ def leaderboard_page():
         sorted_scores = sorted(filtered_scores, key=lambda x: x["score"], reverse=True)[:25]
         current_user_id = request.args.get("user_id", "")
         total_players = len(filtered_scores)
+
+        # Add display_name to each entry
+        for entry in sorted_scores:
+            entry["display_name"] = (
+                entry.get("first_name") or
+                entry.get("last_name") or
+                entry.get("username") or
+                "Anonymous"
+            )
 
         return render_template_string("""
         <!DOCTYPE html>
@@ -80,12 +98,12 @@ def leaderboard_page():
                 {% for entry in scores %}
                 <tr class="{% if entry.user_id == current_user_id %}highlight{% endif %}">
                     <td>{{ loop.index }}</td>
-                    <td>{{ entry.username }}</td>
+                    <td>{{ entry.display_name }}</td>
                     <td>{{ entry.score }}</td>
                 </tr>
                 {% endfor %}
             </table>
-            <div class="footer">showing {{ scores|length }}/73 players</div>
+            <div class="footer">showing {{ scores|length }}/76 players</div>
             {% else %}
             <div style="margin-top: 40px; font-size: 20px;">
                 🤖<br><br>
