@@ -58,7 +58,7 @@ def leaderboard_page():
                     width: 100%;
                     border-collapse: collapse;
                     margin-top: 10px;
-                    margin-bottom: 180px;
+                    margin-bottom: 80px;
                 }
                 th, td {
                     padding: 12px;
@@ -82,7 +82,7 @@ def leaderboard_page():
                     font-style: italic;
                     color: #888;
                     margin-top: -40px;
-                    margin-bottom: 20px;
+                    margin-bottom: 80px;
                 }
                 @keyframes flash {
                     from { background-color: #fff3cd; }
