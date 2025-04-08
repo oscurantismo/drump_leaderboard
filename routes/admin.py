@@ -1,5 +1,5 @@
 import json
-from flask import Blueprint, request
+from flask import Blueprint, request, redirect
 import os
 from utils.storage import BACKUP_FOLDER, DATA_FILE
 from utils.logging import log_event
