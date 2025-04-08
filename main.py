@@ -24,6 +24,11 @@ class Config:
 
 app = Flask(__name__)
 app.config.from_object(Config())
+
+# ✅ Set secret key for session security
+app.secret_key = os.getenv("SECRET_KEY", "dev_secret_for_debug_only")
+
+# ✅ Enable scheduler
 scheduler = APScheduler()
 scheduler.init_app(app)
 
