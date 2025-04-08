@@ -61,6 +61,16 @@ def view_logs():
             log_content = f.read().replace("\n", "<br>")
         log_html = f"<div>{log_content}</div>"
 
+    crash_upload_html = ""
+    if debug_enabled:
+        crash_upload_html = """
+        <form action="/upload-scores" method="post" enctype="application/json" style="margin-bottom: 20px;">
+            <h4>🧪 Crash Test Upload</h4>
+            <input type="file" name="file" accept=".json" required>
+            <button type="submit">Upload raw scores.json</button>
+        </form>
+        """
+
     return f"""
     <!DOCTYPE html>
     <html>
@@ -117,18 +127,60 @@ def view_logs():
             <a href="/download-logs">⬇️ Download logs.txt</a>
         </div>
 
-        {''
-        if not debug_enabled else '''
-        <form action="/upload-scores" method="post" enctype="application/json" style="margin-bottom: 20px;">
-            <h4>🧪 Crash Test Upload</h4>
-            <input type="file" name="file" accept=".json" required>
-            <button type="submit">Upload raw scores.json</button>
+        <h3>🛠 Leaderboard Tools</h3>
+
+        <form action="/upload-scores" method="post" enctype="multipart/form-data" onsubmit="return validateUpload()" style="margin-bottom: 20px;">
+            <h4>📤 Upload Leaderboard Backup (.json)</h4>
+            <input type="file" id="jsonFile" name="file" accept=".json" required onchange="previewJSON()">
+            <br><br>
+            <button type="submit">Upload scores.json</button>
         </form>
-        '''}
+
+        <pre id="jsonPreview" style="background:#f0f0f0;padding:10px;border-radius:6px;max-height:200px;overflow:auto;font-size:13px;"></pre>
+
+        <form action="/manual-backup" method="post" style="margin-bottom: 30px;">
+            <h4>💾 Save Manual Backup</h4>
+            <button type="submit">Create Manual Backup</button>
+        </form>
+
+        {crash_upload_html}
 
         <div class="log-box">
             {log_html}
         </div>
+
+        <script>
+        function validateUpload() {{
+            const fileInput = document.getElementById('jsonFile');
+            if (!fileInput.files.length) {{
+                alert("Please select a JSON file.");
+                return false;
+            }}
+            const file = fileInput.files[0];
+            if (!file.name.endsWith(".json")) {{
+                alert("Only .json files are allowed.");
+                return false;
+            }}
+            return true;
+        }}
+
+        function previewJSON() {{
+            const file = document.getElementById('jsonFile').files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {{
+                try {{
+                    const obj = JSON.parse(e.target.result);
+                    const formatted = JSON.stringify(obj, null, 2);
+                    document.getElementById('jsonPreview').textContent = formatted;
+                }} catch (err) {{
+                    document.getElementById('jsonPreview').textContent = "❌ Invalid JSON: " + err.message;
+                }}
+            }};
+            reader.readAsText(file);
+        }}
+        </script>
     </body>
     </html>
     """
@@ -160,20 +212,20 @@ def view_backups():
     <head>
         <title>📦 Backups</title>
         <style>
-            body {{
+            body {
                 font-family: Arial, sans-serif;
                 background: #f4f4f4;
                 padding: 20px;
                 color: #333;
-            }}
-            h2 {{
+            }
+            h2 {
                 color: #0047ab;
-            }}
-            ul {{
+            }
+            ul {
                 list-style: none;
                 padding: 0;
-            }}
-            li {{
+            }
+            li {
                 background: #fff;
                 margin-bottom: 10px;
                 padding: 10px 15px;
@@ -182,8 +234,8 @@ def view_backups():
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-            }}
-            .btn {{
+            }
+            .btn {
                 background: #007bff;
                 color: #fff;
                 padding: 6px 12px;
@@ -191,10 +243,10 @@ def view_backups():
                 border-radius: 6px;
                 font-weight: bold;
                 transition: background 0.3s;
-            }}
-            .btn:hover {{
+            }
+            .btn:hover {
                 background: #0056b3;
-            }}
+            }
         </style>
     </head>
     <body>
