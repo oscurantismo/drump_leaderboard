@@ -13,7 +13,6 @@ def restore_backup():
     if not filename or not filename.endswith(".json"):
         return "❌ Invalid or missing filename."
 
-    # Sanity check: prevent directory traversal
     if "/" in filename or ".." in filename:
         return "❌ Unsafe filename."
 
@@ -24,16 +23,19 @@ def restore_backup():
 
     try:
         with open(backup_path, "r") as f:
-            data = f.read()
+            data = json.load(f)  # ✅ Safely parse JSON
 
         with open(DATA_FILE, "w") as f:
-            f.write(data)
+            json.dump(data, f, indent=2)  # ✅ Write clean JSON
 
         log_event(f"🔁 Restored scores.json from backup: {filename}")
         return f"✅ Successfully restored scores.json from: {filename}"
+    except json.JSONDecodeError as e:
+        log_event(f"❌ Restore failed — corrupted JSON: {e}")
+        return f"❌ Restore failed — corrupted JSON: {e}", 400
     except Exception as e:
         log_event(f"❌ Restore failed: {e}")
-        return f"❌ Restore failed: {e}"
+        return f"❌ Restore failed: {e}", 500
 
 @admin_routes.route("/upload-scores", methods=["POST"])
 def upload_scores():
