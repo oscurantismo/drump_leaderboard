@@ -9,6 +9,8 @@ user_routes = Blueprint("user_routes", __name__)
 def register():
     data = request.get_json()
     username = (data.get("username") or "Anonymous").strip()
+    first_name = (data.get("first_name") or "").strip()
+    last_name = (data.get("last_name") or "").strip()
     user_id = str(data.get("user_id", "")).strip()
     referrer_id = str(data.get("referrer_id", "")).strip()
 
@@ -20,6 +22,8 @@ def register():
 
     new_user = {
         "username": username,
+        "first_name": first_name,
+        "last_name": last_name,
         "user_id": user_id,
         "score": 0,
         "registered_at": datetime.datetime.now().isoformat()
@@ -40,6 +44,8 @@ def register():
 def submit():
     data = request.get_json()
     username = (data.get("username") or "Anonymous").strip()
+    first_name = (data.get("first_name") or "").strip()
+    last_name = (data.get("last_name") or "").strip()
     user_id = str(data.get("user_id", "")).strip()
     score = max(0, int(data.get("score", 0)))
 
@@ -54,6 +60,8 @@ def submit():
             if score > old_score:
                 entry["score"] = score
                 entry["username"] = username
+                entry["first_name"] = first_name
+                entry["last_name"] = last_name
 
                 # Check if a bonus should be applied for an exact milestone
                 if score % 100 == 0:
@@ -87,6 +95,8 @@ def submit():
                             referrer["referrals"].append({
                                 "ref_user_id": user_id,
                                 "ref_username": username,
+                                "ref_first_name": first_name,
+                                "ref_last_name": last_name,
                                 "timestamp": entry["referral_reward_time"],
                                 "reward": reward,
                                 "before_score": referrer_old,
@@ -104,6 +114,8 @@ def submit():
     if not updated:
         scores.append({
             "username": username,
+            "first_name": first_name,
+            "last_name": last_name,
             "user_id": user_id,
             "score": score,
             "registered_at": datetime.datetime.now().isoformat()
@@ -128,6 +140,9 @@ def profile():
 
     return jsonify({
         "username": entry["username"],
+        "first_name": entry.get("first_name", ""),
+        "last_name": entry.get("last_name", ""),
         "punches": entry["score"],
-        "already_claimed_referral": bool(entry.get("referral_reward_issued", False))
+        "already_claimed_referral": bool(entry.get("referral_reward_issued", False)),
+        "referrals": entry.get("referrals", [])
     })
