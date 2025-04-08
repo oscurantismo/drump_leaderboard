@@ -1,10 +1,11 @@
 import os
 import json
+import time
 from flask import (
     Blueprint, request, abort, send_file, send_from_directory,
     session, redirect, url_for, render_template_string
 )
-from utils.storage import load_scores, BACKUP_FOLDER
+from utils.storage import load_scores, BACKUP_FOLDER, backup_scores
 from utils.logging import log_event
 
 log_routes = Blueprint("log_routes", __name__)
@@ -24,8 +25,7 @@ def require_login():
 @log_routes.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        if (request.form.get("username") == ADMIN_USERNAME and
-                request.form.get("password") == ADMIN_PASSWORD):
+        if request.form.get("username") == ADMIN_USERNAME and request.form.get("password") == ADMIN_PASSWORD:
             session["logged_in"] = True
             return redirect(url_for("log_routes.view_logs"))
         else:
@@ -47,6 +47,19 @@ def download_logs():
     if not os.path.exists(log_path):
         return "❌ No logs.txt file found."
     return send_file(log_path, as_attachment=True)
+
+# === Manual Backup Creator and Downloader ===
+@log_routes.route("/download-latest-backup", methods=["POST"])
+def download_latest_backup():
+    try:
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        filename = f"leaderboard_backup_{timestamp}_manual.json"
+        backup_scores(tag="manual")
+        time.sleep(1)
+        return redirect(url_for("log_routes.download_backup", file=filename))
+    except Exception as e:
+        log_event(f"❌ Failed to create manual backup: {e}")
+        return f"❌ Failed to create backup: {e}", 500
 
 # === View Logs Page ===
 @log_routes.route("/debug-logs")
@@ -138,9 +151,9 @@ def view_logs():
 
         <pre id="jsonPreview" style="background:#f0f0f0;padding:10px;border-radius:6px;max-height:200px;overflow:auto;font-size:13px;"></pre>
 
-        <form action="/download-backup" method="post" style="margin-bottom: 30px;">
-            <h4>💾 Save Manual Backup</h4>
-            <button type="submit">Create Manual Backup</button>
+        <form action="/download-latest-backup" method="post" style="margin-bottom: 30px;">
+            <h4>💾 Create + Download Manual Backup</h4>
+            <button type="submit">Save Manual Backup</button>
         </form>
 
         {crash_upload_html}
