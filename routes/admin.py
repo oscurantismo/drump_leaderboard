@@ -38,10 +38,23 @@ def restore_backup():
 @admin_routes.route("/upload-scores", methods=["POST"])
 def upload_scores():
     try:
-        data = request.get_json(force=True)
+        uploaded_file = request.files.get("file")
+        if not uploaded_file or not uploaded_file.filename.endswith(".json"):
+            return "❌ Invalid file. Only .json files are allowed.", 400
+
+        file_data = uploaded_file.read()
+        data = json.loads(file_data)  # Check it's valid JSON
+
+        # ✅ Save current scores.json as backup before replacing
+        from utils.storage import backup_scores
+        backup_scores(tag="before_upload")
+
+        # ✅ Overwrite scores.json
         with open(DATA_FILE, "w") as f:
-            json.dump(data, f, indent=2)
+            f.write(file_data.decode("utf-8"))
+
         log_event("✅ scores.json manually uploaded via /upload-scores")
+        return redirect("/debug-logs")
     except Exception as e:
         log_event(f"❌ Upload failed: {e}")
         return f"❌ Upload failed: {e}", 500
