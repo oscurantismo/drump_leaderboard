@@ -3,7 +3,7 @@ import json
 import time
 from flask import (
     Blueprint, request, abort, send_file, send_from_directory,
-    session, redirect, url_for, render_template_string
+    session, redirect, url_for, render_template_string, redirect
 )
 from utils.storage import load_scores, BACKUP_FOLDER, backup_scores
 from utils.logging import log_event
