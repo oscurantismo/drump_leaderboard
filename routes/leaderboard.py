@@ -143,7 +143,7 @@ modern_leaderboard_template = """
         </tr>
         {% endfor %}
     </table>
-    <div class="footer">showing {{ scores|length }}/{{ total_players }} players</div>
+    <div class="footer">showing {{ scores|length }}/74 players</div>
 
     <button onclick="toggleRewardsPopup()">🎁 Leaderboard Rewards</button>
     <div id="rewards-popup" class="popup">
