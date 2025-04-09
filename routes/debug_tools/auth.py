@@ -8,11 +8,30 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "changeme")
 
 @auth_routes.before_app_request
 def require_login():
-    exempt_paths = {"/login", "/leaderboard-page", "/leaderboard"}
-    if request.path in exempt_paths:
+    # Only protect these paths
+    protected_prefixes = [
+        "/debug-logs",
+        "/download-logs",
+        "/upload-tools",
+        "/manual-tools",
+        "/download-latest-backup",
+        "/download-backup",
+        "/preview-backup",
+        "/delete-backup",
+        "/backups",
+        "/user-logs"
+    ]
+
+    request_path = request.path
+
+    # Allow everything else
+    if not any(request_path.startswith(p) for p in protected_prefixes):
         return
+
+    # Check admin session
     if not session.get("logged_in"):
         return redirect(url_for("auth_routes.login"))
+
 
 @auth_routes.route("/login", methods=["GET", "POST"])
 def login():
