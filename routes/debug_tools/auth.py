@@ -8,7 +8,8 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "changeme")
 
 @auth_routes.before_app_request
 def require_login():
-    if request.path == "/login":
+    exempt_paths = {"/login", "/leaderboard-page", "/leaderboard"}
+    if request.path in exempt_paths:
         return
     if not session.get("logged_in"):
         return redirect(url_for("auth_routes.login"))
