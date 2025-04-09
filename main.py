@@ -13,8 +13,10 @@ logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 from routes.user import user_routes
 from routes.leaderboard import leaderboard_routes
 from routes.referral import referral_routes
-from routes.logging import log_routes
 from routes.admin import admin_routes  # ✅ import only
+
+# ✅ NEW: Import debug tools module (modularised logging routes)
+from debug_tools import register_logging_routes
 
 # Scheduler setup
 from flask_apscheduler import APScheduler
@@ -45,8 +47,9 @@ except Exception as e:
 app.register_blueprint(user_routes)
 app.register_blueprint(leaderboard_routes)
 app.register_blueprint(referral_routes)
-app.register_blueprint(log_routes)
 app.register_blueprint(admin_routes)
+register_logging_routes(app)  # ✅ Replaces app.register_blueprint(log_routes)
+
 log_event("✅ All blueprints registered")
 
 # ✅ Scheduled backup every 6 hours
