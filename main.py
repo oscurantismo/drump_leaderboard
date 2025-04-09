@@ -16,7 +16,7 @@ from routes.referral import referral_routes
 from routes.admin import admin_routes  # ✅ import only
 
 # ✅ NEW: Import debug tools module (modularised logging routes)
-from debug-tools import register_logging_routes
+from debug_tools import register_logging_routes
 
 # Scheduler setup
 from flask_apscheduler import APScheduler
