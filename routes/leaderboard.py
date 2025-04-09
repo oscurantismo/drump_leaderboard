@@ -4,15 +4,12 @@ from utils.logging import log_event
 
 leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
-# ✅ Toggle this to activate maintenance mode
-MAINTENANCE_MODE = False
+MAINTENANCE_MODE = True
 
 @leaderboard_routes.route("/leaderboard")
 def get_leaderboard():
     scores = load_scores()
     sorted_scores = sorted(scores, key=lambda x: x.get("score", 0), reverse=True)
-
-    # Add display names
     for entry in sorted_scores:
         entry["display_name"] = (
             entry.get("first_name") or
@@ -25,40 +22,12 @@ def get_leaderboard():
 @leaderboard_routes.route("/leaderboard-page")
 def leaderboard_page():
     if MAINTENANCE_MODE:
-        return render_template_string("""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>🏗 Maintenance</title>
-            <style>
-                body {
-                    font-family: 'Arial Black', sans-serif;
-                    background: #ffffff;
-                    padding: 40px;
-                    color: #444;
-                    text-align: center;
-                }
-                h1 {
-                    color: #b22234;
-                    font-size: 22px;
-                }
-                p {
-                    font-size: 16px;
-                    margin-top: 20px;
-                }
-            </style>
-        </head>
-        <body>
-            <h1>🚧 We're Under Maintenance</h1>
-            <p>The leaderboard is temporarily offline while we perform updates.<br>Please check back later.</p>
-        </body>
-        </html>
-        """)
+        return render_template_string("<h1>🚧 Leaderboard Under Maintenance</h1>")
 
     try:
         scores = load_scores()
         filtered_scores = [s for s in scores if s.get("score", 0) > 0]
-        sorted_scores = sorted(filtered_scores, key=lambda x: x["score"], reverse=True)[:25]
+        sorted_scores = sorted(filtered_scores, key=lambda x: x["score"], reverse=True)
         current_user_id = request.args.get("user_id", "")
         total_players = len(filtered_scores)
 
@@ -70,117 +39,42 @@ def leaderboard_page():
                 "Anonymous"
             )
 
-        return render_template_string("""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>🏆 Leaderboard</title>
-            <style>
-                body {
-                    font-family: 'Arial Black', sans-serif;
-                    background: #ffffff;
-                    padding: 20px;
-                    color: #002868;
-                    text-align: center;
-                }
-                h2 {
-                    color: #b22234;
-                    margin-bottom: 20px;
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 10px;
-                    margin-bottom: 60px;
-                }
-                th, td {
-                    padding: 12px;
-                    border-bottom: 2px solid #ddd;
-                    font-size: 16px;
-                }
-                th {
-                    background: #002868;
-                    color: white;
-                }
-                tr.highlight {
-                    background-color: #ffeeba;
-                    animation: flash 1s ease-in-out;
-                }
-                tr:hover {
-                    background-color: #f1f1f1;
-                }
-                .footer {
-                    text-align: right;
-                    font-size: 13px;
-                    font-style: italic;
-                    color: #888;
-                    margin-top: -40px;
-                    margin-bottom: 80px;
-                }
-                @keyframes flash {
-                    from { background-color: #fff3cd; }
-                    to { background-color: #ffeeba; }
-                }
-            </style>
-        </head>
-        <body>
-            <h2>🏆 Leaderboard</h2>
-            {% if scores %}
-            <table>
-                <tr><th>#</th><th>Username</th><th>Score</th></tr>
-                {% for entry in scores %}
-                <tr class="{% if entry.user_id == current_user_id %}highlight{% endif %}">
-                    <td>{{ loop.index }}</td>
-                    <td>{{ entry.display_name }}</td>
-                    <td>{{ entry.score }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            <div class="footer">showing {{ scores|length }}/{{ total_players }} players</div>
-            {% else %}
-            <div style="margin-top: 40px; font-size: 20px;">
-                🤖<br><br>
-                <strong>Oops, we seem to have crashed.</strong><br>
-                We're working to fix the issue. Check back in a while.
-            </div>
-            {% endif %}
-        </body>
-        </html>
-        """, scores=sorted_scores, current_user_id=current_user_id, total_players=total_players)
+        user_index = next((i for i, e in enumerate(sorted_scores) if e.get("user_id") == current_user_id), None)
+        user_rank = user_index + 1 if user_index is not None else None
+        user_score = sorted_scores[user_index]["score"] if user_index is not None else 0
 
+        if user_rank:
+            if user_rank > 25:
+                threshold = sorted_scores[24]["score"]
+                progress_text = f"{threshold - user_score + 1} punches left to enter top-25"
+            elif user_rank > 1:
+                threshold = sorted_scores[user_index - 1]["score"]
+                progress_text = f"{threshold - user_score + 1} punches left to reach top-{user_rank - 1}"
+            else:
+                progress_text = "You're #1! 🏆"
+        else:
+            progress_text = "Punch more to enter the top-25!"
+
+        movement_history = []
+        if user_rank:
+            if user_rank <= 25:
+                movement_history.append("⬆️ Entered top-25: +250 punches")
+            if user_rank <= 10:
+                movement_history.append("⬆️ Entered top-10: +550 punches")
+            if user_rank == 3:
+                movement_history.append("⬆️ Entered top-3: +1000 punches")
+            if user_rank == 2:
+                movement_history.append("⬆️ Entered top-2: +2000 punches")
+            if user_rank == 1:
+                movement_history.append("⬆️ Entered top-1: +4000 punches")
+
+        return render_template_string(modern_leaderboard_template,
+                                      scores=sorted_scores[:25],
+                                      current_user_id=current_user_id,
+                                      total_players=total_players,
+                                      user_rank=user_rank,
+                                      progress_text=progress_text,
+                                      movement_history=movement_history)
     except Exception as e:
         log_event(f"❌ Leaderboard crash: {e}")
-        return render_template_string("""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>🏆 Leaderboard</title>
-            <style>
-                body {
-                    font-family: 'Arial Black', sans-serif;
-                    background: #ffffff;
-                    padding: 20px;
-                    color: #002868;
-                    text-align: center;
-                }
-                .error-box {
-                    margin-top: 100px;
-                    font-size: 20px;
-                    color: #333;
-                }
-                .error-box strong {
-                    font-size: 22px;
-                    display: block;
-                    margin-bottom: 10px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="error-box">
-                🛠️<br><br>
-                <strong>Oops, we seem to have crashed.</strong>
-                We're working to fix the issue. Check back in a while.
-            </div>
-        </body>
-        </html>
-        """)
+        return render_template_string("<h1>🚧 Leaderboard Under Maintenance</h1>")
