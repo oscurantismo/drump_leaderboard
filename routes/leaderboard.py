@@ -33,17 +33,17 @@ def leaderboard_page():
             <style>
                 body {
                     font-family: 'Arial Black', sans-serif;
-                    background: #fdf6e3;
+                    background: #ffffff;
                     padding: 40px;
                     color: #444;
                     text-align: center;
                 }
                 h1 {
                     color: #b22234;
-                    font-size: 32px;
+                    font-size: 22px;
                 }
                 p {
-                    font-size: 18px;
+                    font-size: 16px;
                     margin-top: 20px;
                 }
             </style>
