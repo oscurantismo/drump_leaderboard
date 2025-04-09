@@ -5,7 +5,7 @@ from utils.logging import log_event
 leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
 # ✅ Toggle this to activate maintenance mode
-MAINTENANCE_MODE = True
+MAINTENANCE_MODE = False
 
 @leaderboard_routes.route("/leaderboard")
 def get_leaderboard():
