@@ -190,14 +190,14 @@ def get_leaderboard():
 @leaderboard_routes.route("/leaderboard-page")
 def leaderboard_page():
     if MAINTENANCE_MODE:
-        return render_template_string("<h1>🚧 Leaderboard Under Maintenance</h1>")
+        return render_template_string("<h2>🚧 Sorry, the leaderboard is under maintenance while we're improving your experience. Check back later</h2>")
 
     try:
         scores = load_scores()
         filtered_scores = [s for s in scores if s.get("score", 0) > 0]
         sorted_scores = sorted(filtered_scores, key=lambda x: x["score"], reverse=True)
         current_user_id = request.args.get("user_id", "")
-        total_players = len(filtered_scores)
+        total_players = len(scores)
 
         for entry in sorted_scores:
             entry["display_name"] = (
