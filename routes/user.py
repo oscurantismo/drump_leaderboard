@@ -40,6 +40,12 @@ def register():
     return jsonify({"status": "registered"})
 
 
+from collections import defaultdict, deque
+import time
+
+submission_times = {}  # Tracks last submission time per user
+user_activity = defaultdict(lambda: deque(maxlen=50))  # Store recent taps
+
 @user_routes.route("/submit", methods=["POST"])
 def submit():
     data = request.get_json()
@@ -48,6 +54,21 @@ def submit():
     last_name = (data.get("last_name") or "").strip()
     user_id = str(data.get("user_id", "")).strip()
     score = max(0, int(data.get("score", 0)))
+
+    now = time.time()
+
+    # === Bot Detection ===
+    last_time = submission_times.get(user_id)
+    submission_times[user_id] = now
+    if last_time:
+        interval = now - last_time
+        if interval < 0.2:
+            log_event(f"⚠️ Suspiciously fast tap: {username} (ID: {user_id}) – {interval:.3f}s")
+
+    user_activity[user_id].append(now)
+    recent_taps = [t for t in user_activity[user_id] if now - t <= 10]
+    if len(recent_taps) > 30:
+        log_event(f"🚨 High-frequency activity: {username} (ID: {user_id}) – {len(recent_taps)} taps in 10s")
 
     log_event(f"🔄 Score submitted: {username} (ID: {user_id}) – {score}")
 
@@ -63,12 +84,12 @@ def submit():
                 entry["first_name"] = first_name
                 entry["last_name"] = last_name
 
-                # Check if a bonus should be applied for an exact milestone
+                # 🎯 Bonus for 100s milestone
                 if score % 100 == 0:
                     entry["score"] += 25
                     log_event(f"🎯 Milestone reached: {score} → +25 bonus punches for {username}")
 
-                # Referral reward if invitee reaches 20 punches
+                # 🎁 Referral reward
                 referrer_id = entry.get("referred_by")
                 if old_score < 20 <= score and referrer_id and not entry.get("referral_reward_issued"):
                     referrer = next((e for e in scores if e["user_id"] == referrer_id), None)
@@ -77,10 +98,8 @@ def submit():
                         referrer_old = referrer["score"]
                         referred_old = entry["score"]
 
-                        # Prevent duplicate entries in referral history
                         existing_referral = any(
-                            r.get("ref_user_id") == user_id
-                            for r in referrer.get("referrals", [])
+                            r.get("ref_user_id") == user_id for r in referrer.get("referrals", [])
                         )
 
                         if not existing_referral:
@@ -124,7 +143,6 @@ def submit():
 
     save_scores(scores)
     return jsonify({"status": "ok"})
-
 
 @user_routes.route("/profile")
 def profile():
