@@ -81,6 +81,11 @@ def view_logs():
             <a href="/referral-history-table">📨 Referral History</a>
             <a href="/user-logs">👥 User Logs</a>
             <a href="/download-logs">⬇️ Download logs.txt</a>
+            <a href="/reward-logs">
+                <button style="margin-top: 14px; padding: 8px 14px; background:#0047ab; color:white; border:none; border-radius:8px;">
+                    🎁 View Reward Logs
+                </button>
+            </a>
         </div>
 
         <div class="btn-row">
