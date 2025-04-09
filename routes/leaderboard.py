@@ -18,6 +18,7 @@ modern_leaderboard_template = """
             padding: 20px;
             color: #002868;
             text-align: center;
+            margin-bottom: 200px;
         }
         h2 {
             color: #0047ab;
