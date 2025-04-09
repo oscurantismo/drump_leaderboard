@@ -6,6 +6,173 @@ leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
 MAINTENANCE_MODE = True
 
+modern_leaderboard_template = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🏆 Leaderboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #ffffff;
+            padding: 20px;
+            color: #002868;
+            text-align: center;
+        }
+        h2 {
+            color: #0047ab;
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+        .rank-summary {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+        .progress-text {
+            font-size: 15px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            font-size: 15px;
+        }
+        th {
+            background: #0047ab;
+            color: white;
+        }
+        tr.highlight {
+            background-color: #ffeeba !important;
+            animation: flash 1s ease-in-out;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        button {
+            padding: 10px 16px;
+            margin: 10px 6px;
+            font-size: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #0047ab;
+            color: white;
+            cursor: pointer;
+        }
+        .footer {
+            text-align: center;
+            font-size: 13px;
+            font-style: italic;
+            color: #666;
+            margin-top: 10px;
+        }
+        .popup {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 20px;
+            border: 2px solid #0047ab;
+            border-radius: 12px;
+            z-index: 9999;
+            display: none;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+        .popup h3 {
+            margin-top: 0;
+            color: #002868;
+        }
+        .popup ul {
+            text-align: left;
+            padding-left: 16px;
+        }
+        .history {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .history ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .history li {
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+        }
+        @keyframes flash {
+            from { background-color: #fff3cd; }
+            to { background-color: #ffeeba; }
+        }
+    </style>
+    <script>
+        function toggleRewardsPopup() {
+            const popup = document.getElementById('rewards-popup');
+            popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+        }
+        function toggleHistory() {
+            const history = document.getElementById("history");
+            history.style.display = history.style.display === "none" ? "block" : "none";
+        }
+    </script>
+</head>
+<body>
+    <h2>🏆 Leaderboard</h2>
+    {% if user_rank %}
+    <div class="rank-summary">👤 Your Rank: {{ user_rank }}</div>
+    <div class="progress-text">🔼 {{ progress_text }}</div>
+    {% endif %}
+    {% if scores %}
+    <table>
+        <tr><th>#</th><th>Username</th><th>Score</th></tr>
+        {% for entry in scores %}
+        <tr class="{% if entry.user_id == current_user_id %}highlight{% endif %}">
+            <td>
+                {% if loop.index == 1 %} 🥇 {% elif loop.index == 2 %} 🥈 {% elif loop.index == 3 %} 🥉 {% else %} {{ loop.index }} {% endif %}
+            </td>
+            <td>{{ entry.display_name }}</td>
+            <td>{{ entry.score }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <div class="footer">showing {{ scores|length }}/{{ total_players }} players</div>
+
+    <button onclick="toggleRewardsPopup()">🎁 Leaderboard Rewards</button>
+    <div id="rewards-popup" class="popup">
+        <h3>Leaderboard Rewards</h3>
+        <ul>
+            <li>📈 Entering top-25: <b>+250</b> punches</li>
+            <li>📈 Entering top-10: <b>+550</b> punches</li>
+            <li>📈 Entering top-3: <b>+1000</b>, Top-2: <b>+2000</b>, Top-1: <b>+4000</b></li>
+            <li>📉 Dropping out of top-10: <b>-200</b> punches</li>
+            <li>📉 Dropping from top-3/2/1: <b>-600</b> punches</li>
+            <li>📉 Dropping from top-25: <b>-100</b> punches</li>
+        </ul>
+        <button onclick="toggleRewardsPopup()">Close</button>
+    </div>
+
+    <button onclick="toggleHistory()">📈 Your Leaderboard Progress</button>
+    <div id="history" class="history" style="display:none;">
+        <ul>
+            {% for h in movement_history %}
+            <li>{{ h }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</body>
+</html>
+"""
+
+
 @leaderboard_routes.route("/leaderboard")
 def get_leaderboard():
     scores = load_scores()
