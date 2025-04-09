@@ -70,6 +70,16 @@ def view_logs():
             .btn-row button:hover {
                 background: #5a6268;
             }
+            .filter-row {
+                margin-bottom: 15px;
+            }
+            input[type="text"], select {
+                padding: 6px 10px;
+                font-size: 13px;
+                border-radius: 4px;
+                border: 1px solid #ccc;
+                margin-right: 10px;
+            }
         </style>
     </head>
     <body>
@@ -81,11 +91,17 @@ def view_logs():
             <a href="/referral-history-table">📨 Referral History</a>
             <a href="/user-logs">👥 User Logs</a>
             <a href="/download-logs">⬇️ Download logs.txt</a>
-            <a href="/reward-logs">
-                <button style="margin-top: 14px; padding: 8px 14px; background:#0047ab; color:white; border:none; border-radius:8px;">
-                    🎁 View Reward Logs
-                </button>
-            </a>
+        </div>
+
+        <div class="filter-row">
+            <input type="text" id="search" placeholder="Search keyword...">
+            <select id="category">
+                <option value="">All Categories</option>
+                <option value="referral">Referrals</option>
+                <option value="submit">Score Submissions</option>
+                <option value="register">User Registration</option>
+            </select>
+            <button onclick="loadLogs('filtered')">🔍 Filter</button>
         </div>
 
         <div class="btn-row">
@@ -101,13 +117,26 @@ def view_logs():
 
         function loadLogs(type) {
             let url = "/debug-logs/content";
+            const keyword = document.getElementById("search").value;
+            const category = document.getElementById("category").value;
+
+            const params = new URLSearchParams();
             if (type === 'previous') {
                 offset += 300;
-                url += `?offset=${offset}`;
+                params.append("offset", offset);
             } else if (type === 'all') {
-                url += "?all=true";
+                params.append("all", "true");
+                offset = 0;
+            } else if (type === 'filtered') {
+                offset = 0;
+                if (keyword) params.append("search", keyword);
+                if (category) params.append("category", category);
             } else {
                 offset = 0;
+            }
+
+            if (params.toString()) {
+                url += "?" + params.toString();
             }
 
             fetch(url)
@@ -125,19 +154,31 @@ def view_logs():
 
 @log_routes.route("/debug-logs/content")
 def debug_logs_content():
-    log_path = LOG_PATH
-    if not os.path.exists(log_path):
+    if not os.path.exists(LOG_PATH):
         return "❌ No logs found."
 
     all_requested = request.args.get("all") == "true"
     offset = int(request.args.get("offset", 0))
+    keyword = request.args.get("search", "").lower()
+    category = request.args.get("category", "")
 
-    with open(log_path, "r") as f:
+    with open(LOG_PATH, "r") as f:
         lines = f.readlines()
 
     if all_requested:
         selected = lines
     else:
         selected = lines[-300 - offset: -offset or None]
+
+    if keyword:
+        selected = [line for line in selected if keyword in line.lower()]
+
+    if category:
+        if category == "referral":
+            selected = [line for line in selected if "referral" in line.lower()]
+        elif category == "submit":
+            selected = [line for line in selected if "score submitted" in line.lower()]
+        elif category == "register":
+            selected = [line for line in selected if "registered" in line.lower()]
 
     return "<br>".join(line.strip() for line in selected)
