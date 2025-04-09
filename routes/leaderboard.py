@@ -4,11 +4,14 @@ from utils.logging import log_event
 
 leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
+# ✅ Toggle this to activate maintenance mode
+MAINTENANCE_MODE = True
+
 @leaderboard_routes.route("/leaderboard")
 def get_leaderboard():
     scores = load_scores()
     sorted_scores = sorted(scores, key=lambda x: x.get("score", 0), reverse=True)
-    
+
     # Add display names
     for entry in sorted_scores:
         entry["display_name"] = (
@@ -21,6 +24,37 @@ def get_leaderboard():
 
 @leaderboard_routes.route("/leaderboard-page")
 def leaderboard_page():
+    if MAINTENANCE_MODE:
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>🏗 Maintenance</title>
+            <style>
+                body {
+                    font-family: 'Arial Black', sans-serif;
+                    background: #fdf6e3;
+                    padding: 40px;
+                    color: #444;
+                    text-align: center;
+                }
+                h1 {
+                    color: #b22234;
+                    font-size: 32px;
+                }
+                p {
+                    font-size: 18px;
+                    margin-top: 20px;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>🚧 We're Under Maintenance</h1>
+            <p>The leaderboard is temporarily offline while we perform updates.<br>Please check back later.</p>
+        </body>
+        </html>
+        """)
+
     try:
         scores = load_scores()
         filtered_scores = [s for s in scores if s.get("score", 0) > 0]
@@ -28,7 +62,6 @@ def leaderboard_page():
         current_user_id = request.args.get("user_id", "")
         total_players = len(filtered_scores)
 
-        # Add display_name to each entry
         for entry in sorted_scores:
             entry["display_name"] = (
                 entry.get("first_name") or
@@ -103,7 +136,7 @@ def leaderboard_page():
                 </tr>
                 {% endfor %}
             </table>
-            <div class="footer">showing {{ scores|length }}/76 players</div>
+            <div class="footer">showing {{ scores|length }}/{{ total_players }} players</div>
             {% else %}
             <div style="margin-top: 40px; font-size: 20px;">
                 🤖<br><br>
