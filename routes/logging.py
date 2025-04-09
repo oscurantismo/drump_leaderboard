@@ -384,3 +384,71 @@ def preview_backup():
     except Exception as e:
         return f"❌ Failed to preview file: {e}"
 
+@log_routes.route("/debug-logs")
+def debug_logs_base():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>🪵 Debug Tools</title>
+        <style>
+            body { font-family: monospace; padding: 20px; background: #f8f9f9; color: #222; }
+            h2 { color: #002868; }
+            .nav-links a {
+                display: inline-block; margin-right: 12px; padding: 8px 14px;
+                background: #007bff; color: white; text-decoration: none;
+                border-radius: 6px; font-weight: bold;
+            }
+            .nav-links a:hover { background: #0056b3; }
+            .section { margin-top: 30px; }
+        </style>
+    </head>
+    <body>
+        <h2>🧰 Debug Tools</h2>
+        <div class="nav-links">
+            <a href="/backups">📦 Backups</a>
+            <a href="/upload-tools">📤 Upload Tools</a>
+            <a href="/manual-tools">💾 Manual Backup</a>
+            <a href="/download-logs">⬇️ Download logs.txt</a>
+        </div>
+
+        <div class="section">
+            <h3>🪵 Latest Logs</h3>
+            <pre id="log-box" style="background:#fff;padding:12px;border-radius:6px;max-height:600px;overflow:auto;"></pre>
+        </div>
+
+        <script>
+        fetch("/debug-logs/content")
+          .then(res => res.text())
+          .then(html => { document.getElementById("log-box").innerHTML = html; });
+        </script>
+    </body>
+    </html>
+    """
+
+@log_routes.route("/debug-logs/content")
+def debug_logs_content():
+    log_path = "/app/data/logs.txt"
+    if not os.path.exists(log_path):
+        return "❌ No logs found."
+    with open(log_path, "r") as f:
+        lines = f.readlines()[-300:]
+    return "<br>".join(line.strip() for line in lines)
+@log_routes.route("/upload-tools")
+def upload_tools():
+    return """
+    <h3>📤 Upload Leaderboard Backup (.json)</h3>
+    <form action="/upload-scores" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".json" required>
+        <button type="submit">Upload scores.json</button>
+    </form>
+    """
+@log_routes.route("/manual-tools")
+def manual_tools():
+    return """
+    <h3>💾 Manual Backup</h3>
+    <form action="/download-latest-backup" method="post">
+        <button type="submit">Create + Download Manual Backup</button>
+    </form>
+    """
+
