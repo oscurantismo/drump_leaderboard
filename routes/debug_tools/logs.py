@@ -92,6 +92,7 @@ def view_logs():
             <a href="/user-logs">👥 User Logs</a>
             <a href="/download-logs">⬇️ Download logs.txt</a>
             <a href="/reward-logs">⬇️ Reward logs</a>
+            <a href="/admin/backfill-rewards">🛠 Backfill Rewards for existing users</a>
         </div>
 
         <div class="filter-row">
