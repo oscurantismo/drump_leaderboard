@@ -48,7 +48,7 @@ def backfill_rewards():
 
     if updated:
         save_scores(sorted_scores)
-        log_event(f\"🔄 Admin triggered reward backfill: {len(changes)} rewards issued\")
+        log_event(f"🔄 Admin triggered reward backfill: {len(changes)} rewards issued")
 
     if not changes:
         return "<h3>✅ All rewards already issued. No changes made.</h3>"
