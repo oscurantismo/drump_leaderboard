@@ -91,6 +91,7 @@ def view_logs():
             <a href="/referral-history-table">📨 Referral History</a>
             <a href="/user-logs">👥 User Logs</a>
             <a href="/download-logs">⬇️ Download logs.txt</a>
+            <a href="/reward-logs">⬇️ Reward logs</a>
         </div>
 
         <div class="filter-row">
