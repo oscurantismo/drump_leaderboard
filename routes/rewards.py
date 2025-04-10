@@ -9,6 +9,12 @@ REWARDS_FILE = "rewards.json"
 
 def log_reward_event(user_id, username, event, change):
     data = load_rewards()
+
+    # Check for duplicate reward entry
+    for entry in data:
+        if entry["user_id"] == user_id and entry["event"] == event:
+            return  # already logged
+
     entry = {
         "user_id": user_id,
         "username": username,
@@ -19,6 +25,7 @@ def log_reward_event(user_id, username, event, change):
     data.append(entry)
     with open(REWARDS_FILE, "w") as f:
         json.dump(data, f, indent=2)
+
 
 def load_rewards():
     if not os.path.exists(REWARDS_FILE):
