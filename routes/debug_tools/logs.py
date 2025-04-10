@@ -152,29 +152,29 @@ def view_logs():
         </script>
 
         <hr>
-<button onclick="clearRewards()" style="margin-top: 20px; padding: 10px 16px; background: #dc3545; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
-🧨 Clear All Rewards (danger)
-</button>
+        <button onclick="clearRewards()" style="margin-top: 20px; padding: 10px 16px; background: #dc3545; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
+            🧨 Clear All Rewards (danger)
+        </button>
 
-<script>
-function clearRewards() {
-    if (!confirm("Are you sure you want to permanently delete all reward logs? This cannot be undone.")) return;
+        <script>
+        function clearRewards() {
+            if (!confirm("Are you sure you want to permanently delete all reward logs? This cannot be undone.")) return;
 
-    fetch("/rewards/replace", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify([])
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert("✅ Rewards cleared.");
-        location.reload();
-    })
-    .catch(err => {
-        alert("❌ Failed to clear rewards: " + err);
-    });
-}
-</script>
+        fetch("/rewards/replace", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify([])
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert("✅ Rewards cleared.");
+            location.reload();
+        })
+            .catch(err => {
+                alert("❌ Failed to clear rewards: " + err);
+            });
+        }
+        </script>
 
     </body>
     </html>
