@@ -186,6 +186,19 @@ def get_leaderboard():
         )
     return jsonify(sorted_scores)
 
+@leaderboard_routes.route("/leaderboard")
+def get_leaderboard():
+    scores = load_scores()
+    sorted_scores = sorted(scores, key=lambda x: x.get("score", 0), reverse=True)
+    for entry in sorted_scores:
+        entry["display_name"] = (
+            entry.get("first_name") or
+            entry.get("last_name") or
+            entry.get("username") or
+            "Anonymous"
+        )
+    return jsonify(sorted_scores)
+
 @leaderboard_routes.route("/leaderboard-page")
 def leaderboard_page():
     if MAINTENANCE_MODE:
@@ -222,18 +235,25 @@ def leaderboard_page():
         else:
             progress_text = "Punch more to enter the top-25!"
 
+        # Load collected rewards for current user
+        all_rewards = load_rewards()
+        user_rewards = [r["event"] for r in all_rewards if r["user_id"] == current_user_id]
+
         movement_history = []
         if user_rank:
             if user_rank <= 25:
-                movement_history.append("⬆️ Entered top-25: +250 punches")
+                movement_history.append("⬆️ Entered top-25: +250 punches ✅ collected" if "Entered top-25" in user_rewards else "⬆️ Entered top-25: +250 punches")
             if user_rank <= 10:
-                movement_history.append("⬆️ Entered top-10: +550 punches")
+                movement_history.append("⬆️ Entered top-10: +550 punches ✅ collected" if "Entered top-10" in user_rewards else "⬆️ Entered top-10: +550 punches")
             if user_rank == 3:
-                movement_history.append("⬆️ Entered top-3: +1000 punches")
+                movement_history.append("⬆️ Entered top-3: +1000 punches ✅ collected" if "Entered top-3" in user_rewards else "⬆️ Entered top-3: +1000 punches")
             if user_rank == 2:
-                movement_history.append("⬆️ Entered top-2: +2000 punches")
+                movement_history.append("⬆️ Entered top-2: +2000 punches ✅ collected" if "Entered top-2" in user_rewards else "⬆️ Entered top-2: +2000 punches")
             if user_rank == 1:
-                movement_history.append("⬆️ Entered top-1: +4000 punches")
+                movement_history.append("⬆️ Entered top-1: +4000 punches ✅ collected" if "Entered top-1" in user_rewards else "⬆️ Entered top-1: +4000 punches")
+
+        if not movement_history:
+            movement_history.append("No rewards yet. Punch more to climb the leaderboard and complete bonus tasks (coming soon)!")
 
         return render_template_string(modern_leaderboard_template,
                                       scores=sorted_scores[:50],
