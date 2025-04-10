@@ -148,19 +148,6 @@ modern_leaderboard_template = """
     </table>
     <div class="footer">showing {{ scores|length }}/{{ total_players }} players</div>
 
-    <button onclick="toggleRewardsPopup()">🎁 Leaderboard Rewards</button>
-    <div id="rewards-popup" class="popup">
-        <h3>Leaderboard Rewards</h3>
-        <ul>
-            <li>:🥇First place: <b>+4000</b> punches one-time</li>
-            <li>:🥈Second place: <b>+2000</b> punches one-time</li>
-            <li>:🥉Third place: <b>+1000</b> punches one-time</li>
-            <li>Entering top-10: <b>+550</b> punches one-time</li>
-            <li>Entering top-25: <b>+250</b> punches one-time</li>
-        </ul>
-        <button onclick="toggleRewardsPopup()">Close</button>
-    </div>
-
     <button onclick="toggleHistory()">📈 Your Leaderboard Progress</button>
     <div id="history" class="history" style="display:none;">
         <ul>
