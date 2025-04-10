@@ -1,8 +1,9 @@
 from flask import Blueprint, request, redirect, abort, send_from_directory, render_template_string
 import os
+import json
 import time
 from datetime import datetime, timedelta
-from utils.storage import BACKUP_FOLDER, backup_scores
+from utils.storage import BACKUP_FOLDER, backup_scores, SCORES_FILE, save_scores
 from utils.logging import log_event
 
 backup_routes = Blueprint("backup_routes", __name__)
@@ -18,6 +19,33 @@ def download_latest_backup():
     except Exception as e:
         log_event(f"❌ Failed to create manual backup: {e}")
         return f"❌ Failed to create backup: {e}", 500
+
+@backup_routes.route("/upload-scores", methods=["POST"])
+def upload_scores():
+    try:
+        file = request.files.get("file")
+        if not file or not file.filename.endswith(".json"):
+            return "❌ Invalid file. Must be a .json file.", 400
+        scores_data = json.load(file)
+        save_scores(scores_data)
+        log_event("✅ Admin uploaded new scores.json")
+        return redirect("/backups")
+    except Exception as e:
+        return f"❌ Failed to upload scores: {e}", 500
+
+@backup_routes.route("/upload-backup", methods=["POST"])
+def upload_backup():
+    try:
+        file = request.files.get("file")
+        if not file or not file.filename.endswith(".json"):
+            return "❌ Invalid file.", 400
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        save_path = os.path.join(BACKUP_FOLDER, f"leaderboard_backup_{timestamp}.json")
+        file.save(save_path)
+        log_event(f"✅ Admin uploaded backup {save_path}")
+        return redirect("/backups")
+    except Exception as e:
+        return f"❌ Failed to upload backup: {e}", 500
 
 @backup_routes.route("/download-backup")
 def download_backup():
@@ -93,6 +121,9 @@ def view_backups():
             }
             h2 {
                 color: #0047ab;
+            }
+            form {
+                margin-bottom: 20px;
             }
             ul {
                 list-style: none;
@@ -173,6 +204,23 @@ def view_backups():
     </head>
     <body>
         <h2>📦 Leaderboard & Referral Backups</h2>
+
+        <form action="/download-latest-backup" method="post">
+            <button class="btn">💾 Create + Download Manual Backup</button>
+        </form>
+
+        <form action="/upload-scores" method="post" enctype="multipart/form-data">
+            <label><b>Upload scores.json</b></label><br>
+            <input type="file" name="file" accept=".json" required>
+            <button class="btn">⬆️ Upload Scores</button>
+        </form>
+
+        <form action="/upload-backup" method="post" enctype="multipart/form-data">
+            <label><b>Upload New Backup (.json)</b></label><br>
+            <input type="file" name="file" accept=".json" required>
+            <button class="btn">⬆️ Upload Backup</button>
+        </form>
+
         <ul>
     """
 
