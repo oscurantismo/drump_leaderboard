@@ -14,7 +14,7 @@ def revert_reward_scores():
     rewards = load_rewards()
 
     updated = 0
-    user_map = {str(entry["user_id"]): entry for entry in scores if "user_id" in entry}
+    user_map = {str(entry.get("user_id", "")).strip(): entry for entry in scores}
 
     for reward in rewards:
         user_id = str(reward.get("user_id", "")).strip()
@@ -22,10 +22,9 @@ def revert_reward_scores():
 
         if user_id in user_map:
             entry = user_map[user_id]
-            original_score = int(entry.get("score", 0))
-            new_score = max(0, original_score - change)
-
-            if new_score != original_score:
+            current_score = int(entry.get("score", 0))
+            new_score = max(0, current_score - change)
+            if new_score != current_score:
                 entry["score"] = new_score
                 updated += 1
 
