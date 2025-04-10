@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template_string
 from utils.storage import load_scores
 from utils.logging import log_event
+from rewards import load_rewards
 
 leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
