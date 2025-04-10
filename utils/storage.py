@@ -4,27 +4,27 @@ import fcntl
 import time
 from .logging import log_event
 
-DATA_FILE = "/app/data/scores.json"
+SCORES_FILE = "/app/data/scores.json"
 BACKUP_FOLDER = "/app/data/backups"
 _last_backup_time = 0
 
 def ensure_file():
-    if not os.path.exists(DATA_FILE):
-        os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-        with open(DATA_FILE, "w") as f:
+    if not os.path.exists(SCORES_FILE):
+        os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)
+        with open(SCORES_FILE, "w") as f:
             json.dump([], f)
         log_event("✅ Created new scores.json")
 
 def load_scores():
     ensure_file()
-    with open(DATA_FILE, "r") as f:
+    with open(SCORES_FILE, "r") as f:
         try:
             fcntl.flock(f, fcntl.LOCK_SH)
             data = json.load(f)
             fcntl.flock(f, fcntl.LOCK_UN)
             return data
         except json.JSONDecodeError as e:
-            log_event(f"❌ Failed to decode scores.json: {e} (Path: {DATA_FILE})")
+            log_event(f"❌ Failed to decode scores.json: {e} (Path: {SCORES_FILE})")
 
     # 🔁 Try auto-restore from latest good backup, including manual
     try:
@@ -38,7 +38,7 @@ def load_scores():
             try:
                 with open(path, "r") as b:
                     data = json.load(b)
-                with open(DATA_FILE, "w") as w:
+                with open(SCORES_FILE, "w") as w:
                     json.dump(data, w, indent=2)
                 log_event(f"♻️ Restored scores.json from backup: {backup_file}")
                 return data
@@ -50,14 +50,14 @@ def load_scores():
     return []
 
 def save_scores(scores):
-    temp_path = DATA_FILE + ".tmp"
+    temp_path = SCORES_FILE + ".tmp"
     with open(temp_path, "w") as f:
         fcntl.flock(f, fcntl.LOCK_EX)
         json.dump(scores, f, indent=2)
         f.flush()
         os.fsync(f.fileno())
         fcntl.flock(f, fcntl.LOCK_UN)
-    os.replace(temp_path, DATA_FILE)
+    os.replace(temp_path, SCORES_FILE)
 
 def backup_scores(tag=None):
     global _last_backup_time
@@ -77,4 +77,3 @@ def backup_scores(tag=None):
     with open(backup_path, "w") as f:
         json.dump(scores, f, indent=2)
     log_event(f"💾 Backup saved: {backup_path}")
-
