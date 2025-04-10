@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, render_template_string
 from utils.storage import load_scores
 from utils.logging import log_event
 from routes.rewards import load_rewards
+from routes.rewards import log_reward_event
 
 leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
@@ -164,7 +165,7 @@ modern_leaderboard_template = """
     <div id="history" class="history" style="display:none;">
         <ul>
             {% for h in movement_history %}
-            <li>{{ h }}</li>
+            <li>{{ h|safe }}</li>
             {% endfor %}
         </ul>
     </div>
@@ -226,21 +227,26 @@ def leaderboard_page():
         user_rewards = [r["event"] for r in all_rewards if r["user_id"] == current_user_id]
 
         reward_tiers = [
-            ("Entered top-1", 1, "+4000 punches"),
-            ("Entered top-2", 2, "+2000 punches"),
-            ("Entered top-3", 3, "+1000 punches"),
-            ("Entered top-10", 10, "+550 punches"),
-            ("Entered top-25", 25, "+250 punches"),
+            ("Entered top-1", 1, 4000),
+            ("Entered top-2", 2, 2000),
+            ("Entered top-3", 3, 1000),
+            ("Entered top-10", 10, 550),
+            ("Entered top-25", 25, 250),
         ]
 
         movement_history = []
+
         if user_rank:
             for label, threshold, bonus in reward_tiers:
                 if user_rank <= threshold:
-                    if label in user_rewards:
-                        movement_history.append(f"✅ {label}: {bonus} — collected")
+                    if label not in user_rewards:
+                        log_reward_event(current_user_id, current_user_id, label, bonus)
+                        movement_history.append(f"✅ {label}: +{bonus} punches — collected")
+                        user_rewards.append(label)
                     else:
-                        movement_history.append(f"🎯 {label}: {bonus} — <span style='color:#888;'>uncollected</span>")
+                        movement_history.append(f"✅ {label}: +{bonus} punches — collected")
+                else:
+                    movement_history.append(f"🎯 {label}: +{bonus} punches — <span style='color:#888;'>uncollected</span>")
         else:
             movement_history.append("No rewards yet. Punch more to climb the leaderboard and complete bonus tasks (coming soon)!")
 
