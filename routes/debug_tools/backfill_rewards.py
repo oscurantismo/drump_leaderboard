@@ -1,11 +1,15 @@
-from flask import Blueprint
+from flask import Blueprint, session, redirect, url_for
 from utils.storage import load_scores, save_scores
 from routes.rewards import load_rewards, log_reward_event
+from utils.logging import log_event
 
 backfill_bp = Blueprint("backfill_rewards", __name__)
 
 @backfill_bp.route("/admin/backfill-rewards")
 def backfill_rewards():
+    if not session.get("logged_in"):
+        return redirect(url_for("auth_routes.login"))
+
     reward_tiers = [
         ("Entered top-1", 1, 4000),
         ("Entered top-2", 2, 2000),
@@ -44,6 +48,7 @@ def backfill_rewards():
 
     if updated:
         save_scores(sorted_scores)
+        log_event(f\"🔄 Admin triggered reward backfill: {len(changes)} rewards issued\")
 
     if not changes:
         return "<h3>✅ All rewards already issued. No changes made.</h3>"
