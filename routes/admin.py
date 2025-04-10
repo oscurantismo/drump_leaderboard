@@ -1,7 +1,7 @@
 import json
 from flask import Blueprint, request, redirect
 import os
-from utils.storage import BACKUP_FOLDER, DATA_FILE
+from utils.storage import BACKUP_FOLDER, SCORES_FILE
 from utils.logging import log_event
 
 admin_routes = Blueprint("admin_routes", __name__)
