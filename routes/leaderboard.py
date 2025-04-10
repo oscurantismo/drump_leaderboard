@@ -235,24 +235,26 @@ def leaderboard_page():
         else:
             progress_text = "Punch more to enter the top-25!"
 
-        # Load collected rewards for current user
         all_rewards = load_rewards()
         user_rewards = [r["event"] for r in all_rewards if r["user_id"] == current_user_id]
 
+        reward_tiers = [
+            ("Entered top-1", 1, "+4000 punches"),
+            ("Entered top-2", 2, "+2000 punches"),
+            ("Entered top-3", 3, "+1000 punches"),
+            ("Entered top-10", 10, "+550 punches"),
+            ("Entered top-25", 25, "+250 punches"),
+        ]
+
         movement_history = []
         if user_rank:
-            if user_rank <= 25:
-                movement_history.append("⬆️ Entered top-25: +250 punches ✅ collected" if "Entered top-25" in user_rewards else "⬆️ Entered top-25: +250 punches")
-            if user_rank <= 10:
-                movement_history.append("⬆️ Entered top-10: +550 punches ✅ collected" if "Entered top-10" in user_rewards else "⬆️ Entered top-10: +550 punches")
-            if user_rank == 3:
-                movement_history.append("⬆️ Entered top-3: +1000 punches ✅ collected" if "Entered top-3" in user_rewards else "⬆️ Entered top-3: +1000 punches")
-            if user_rank == 2:
-                movement_history.append("⬆️ Entered top-2: +2000 punches ✅ collected" if "Entered top-2" in user_rewards else "⬆️ Entered top-2: +2000 punches")
-            if user_rank == 1:
-                movement_history.append("⬆️ Entered top-1: +4000 punches ✅ collected" if "Entered top-1" in user_rewards else "⬆️ Entered top-1: +4000 punches")
-
-        if not movement_history:
+            for label, threshold, bonus in reward_tiers:
+                if user_rank <= threshold:
+                    if label in user_rewards:
+                        movement_history.append(f"✅ {label}: {bonus} — collected")
+                    else:
+                        movement_history.append(f"🎯 {label}: {bonus} — <span style='color:#888;'>uncollected</span>")
+        else:
             movement_history.append("No rewards yet. Punch more to climb the leaderboard and complete bonus tasks (coming soon)!")
 
         return render_template_string(modern_leaderboard_template,
