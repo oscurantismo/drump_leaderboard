@@ -17,7 +17,7 @@ from routes.admin import admin_routes  # ✅ import only
 from routes.debug_tools.reward_logs import reward_logs_bp
 from routes.debug_tools.backfill_rewards import backfill_bp
 from routes.debug_tools.clear_rewards import clear_rewards_bp
-from routes.admin.revert_reward_scores import revert_bp
+from routes.debug_tools.revert_rewards import revert_bp
 
 # ✅ NEW: Import debug tools module (modularised logging routes)
 from routes.debug_tools import register_logging_routes
