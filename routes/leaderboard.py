@@ -4,7 +4,7 @@ from utils.logging import log_event
 
 leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
-MAINTENANCE_MODE = False
+MAINTENANCE_MODE = True
 
 modern_leaderboard_template = """
 <!DOCTYPE html>
