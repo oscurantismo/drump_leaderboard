@@ -172,20 +172,6 @@ modern_leaderboard_template = """
 </html>
 """
 
-
-@leaderboard_routes.route("/leaderboard")
-def get_leaderboard():
-    scores = load_scores()
-    sorted_scores = sorted(scores, key=lambda x: x.get("score", 0), reverse=True)
-    for entry in sorted_scores:
-        entry["display_name"] = (
-            entry.get("first_name") or
-            entry.get("last_name") or
-            entry.get("username") or
-            "Anonymous"
-        )
-    return jsonify(sorted_scores)
-
 @leaderboard_routes.route("/leaderboard")
 def get_leaderboard():
     scores = load_scores()
