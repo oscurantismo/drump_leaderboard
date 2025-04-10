@@ -233,14 +233,14 @@ def leaderboard_page():
         if user_rank:
             for label, threshold, bonus in reward_tiers:
                 if user_rank <= threshold:
-                    if label not in user_rewards:
-                        log_reward_event(current_user_id, current_user_id, label, bonus)
+                    if label in user_rewards:
                         movement_history.append(f"✅ {label}: +{bonus} punches — collected")
-                        user_rewards.append(label)
                     else:
-                        movement_history.append(f"✅ {label}: +{bonus} punches — collected")
-                else:
-                    movement_history.append(f"🎯 {label}: +{bonus} punches — <span style='color:#888;'>uncollected</span>")
+                        movement_history.append(f"🎯 {label}: +{bonus} punches — <span style='color:#888;'>uncollected</span>")
+                        # ✅ Issue rewards only if enabled
+                        if ENABLE_REWARD_ISSUING:
+                            log_reward_event(current_user_id, current_user_id, label, bonus)
+                            user_rewards.append(label)
         else:
             movement_history.append("No rewards yet. Punch more to climb the leaderboard and complete bonus tasks (coming soon)!")
 
