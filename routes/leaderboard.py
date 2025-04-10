@@ -150,12 +150,11 @@ modern_leaderboard_template = """
     <div id="rewards-popup" class="popup">
         <h3>Leaderboard Rewards</h3>
         <ul>
-            <li>📈 Entering top-25: <b>+250</b> punches</li>
-            <li>📈 Entering top-10: <b>+550</b> punches</li>
-            <li>📈 Entering top-3: <b>+1000</b>, Top-2: <b>+2000</b>, Top-1: <b>+4000</b></li>
-            <li>📉 Dropping out of top-10: <b>-200</b> punches</li>
-            <li>📉 Dropping from top-3/2/1: <b>-600</b> punches</li>
-            <li>📉 Dropping from top-25: <b>-100</b> punches</li>
+            <li>:🥇First place: <b>+4000</b> punches one-time</li>
+            <li>:🥈Second place: <b>+2000</b> punches one-time</li>
+            <li>:🥉Third place: <b>+1000</b> punches one-time</li>
+            <li>Entering top-10: <b>+550</b> punches one-time</li>
+            <li>Entering top-25: <b>+250</b> punches one-time</li>
         </ul>
         <button onclick="toggleRewardsPopup()">Close</button>
     </div>
@@ -237,7 +236,7 @@ def leaderboard_page():
                 movement_history.append("⬆️ Entered top-1: +4000 punches")
 
         return render_template_string(modern_leaderboard_template,
-                                      scores=sorted_scores[:25],
+                                      scores=sorted_scores[:50],
                                       current_user_id=current_user_id,
                                       total_players=total_players,
                                       user_rank=user_rank,
