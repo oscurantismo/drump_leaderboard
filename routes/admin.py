@@ -25,7 +25,7 @@ def restore_backup():
         with open(backup_path, "r") as f:
             data = json.load(f)  # ✅ Safely parse JSON
 
-        with open(DATA_FILE, "w") as f:
+        with open(SCORES_FILE, "w") as f:
             json.dump(data, f, indent=2)  # ✅ Write clean JSON
 
         log_event(f"🔁 Restored scores.json from backup: {filename}")
@@ -52,7 +52,7 @@ def upload_scores():
         backup_scores(tag="before_upload")
 
         # ✅ Overwrite scores.json
-        with open(DATA_FILE, "w") as f:
+        with open(SCORES_FILE, "w") as f:
             f.write(file_data.decode("utf-8"))
 
         log_event("✅ scores.json manually uploaded via /upload-scores")
