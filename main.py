@@ -17,6 +17,7 @@ from routes.admin import admin_routes  # ✅ import only
 from routes.debug_tools.reward_logs import reward_logs_bp
 from routes.debug_tools.backfill_rewards import backfill_bp
 from routes.debug_tools.clear_rewards import clear_rewards_bp
+from routes.admin.revert_rewards import revert_bp
 
 # ✅ NEW: Import debug tools module (modularised logging routes)
 from routes.debug_tools import register_logging_routes
@@ -54,6 +55,7 @@ app.register_blueprint(admin_routes)
 app.register_blueprint(reward_logs_bp)
 app.register_blueprint(backfill_bp)
 app.register_blueprint(clear_rewards_bp)
+app.register_blueprint(revert_bp)
 register_logging_routes(app)  # ✅ Replaces app.register_blueprint(log_routes)
 
 log_event("✅ All blueprints registered")
