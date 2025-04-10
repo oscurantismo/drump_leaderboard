@@ -1,7 +1,7 @@
 import os
 import json
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session, redirect, url_for
 
 rewards_bp = Blueprint("rewards", __name__)
 
@@ -25,7 +25,6 @@ def log_reward_event(user_id, username, event, change):
     data.append(entry)
     with open(REWARDS_FILE, "w") as f:
         json.dump(data, f, indent=2)
-
 
 def load_rewards():
     if not os.path.exists(REWARDS_FILE):
@@ -52,8 +51,12 @@ def download_rewards_backup():
 
 @rewards_bp.route("/rewards/replace", methods=["POST"])
 def replace_rewards_backup():
+    if not session.get("logged_in"):
+        # Return JSON for JS frontend, not HTML redirect
+        return jsonify({"error": "unauthorized", "login_required": True}), 401
+
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
         with open(REWARDS_FILE, "w") as f:
             json.dump(data, f, indent=2)
         return jsonify({"status": "replaced", "entries": len(data)})
