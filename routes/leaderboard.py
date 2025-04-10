@@ -178,10 +178,10 @@ def get_leaderboard():
 @leaderboard_routes.route("/leaderboard-page")
 def leaderboard_page():
     if ENABLE_REWARD_ISSUING and user_rank:
-    for label, threshold, bonus in reward_tiers:
-        if user_rank <= threshold and label not in user_rewards:
-            log_reward_event(current_user_id, current_user_id, label, bonus)
-            user_rewards.append(label)
+        for label, threshold, bonus in reward_tiers:
+            if user_rank <= threshold and label not in user_rewards:
+                log_reward_event(current_user_id, current_user_id, label, bonus)
+                user_rewards.append(label)
 
     if MAINTENANCE_MODE:
         return render_template_string("<h2>🚧 Sorry, the leaderboard is under maintenance while we're improving your experience. Check back later</h2>")
