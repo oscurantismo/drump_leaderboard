@@ -13,7 +13,7 @@ html, body {
   width: 100%;
   height: 100%;
   font-family: 'Negrita Pro', sans-serif;
-  background: url("background.png") no-repeat center center fixed;
+  background: url("drump-images/background.png") no-repeat center center fixed;
   background-size: cover;
   overflow-x: hidden;
   color: var(--dark);
