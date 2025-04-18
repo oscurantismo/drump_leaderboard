@@ -6,7 +6,7 @@ from routes.rewards import log_reward_event, _load as load_reward_ledger   # ←
 
 leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
-MAINTENANCE_MODE      = True
+MAINTENANCE_MODE      = False
 ENABLE_REWARD_ISSUING = False   # flip to True to activate tier bonuses
 
 # ------------------------------------------------------------------------- #
