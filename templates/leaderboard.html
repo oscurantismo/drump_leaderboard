@@ -47,16 +47,17 @@
 
 <!-- =====================  RANKS 4+ TABLE  ===================== -->
 <table>
-  <tr><th>No.</th><th>Name</th><th>Punches</th><th>Next&nbsp;Level</th></tr>
+  <tr>
+    <th>No.</th>
+    <th>Name</th>
+    <th>Punches</th>
+  </tr>
   {% for entry in scores[3:50] %}
     {% set idx = loop.index + 3 %}
-    {% set next_score = scores[idx-1].score if idx-1 < scores|length else entry.score %}
-    {% set remain = (next_score - entry.score + 1) if idx-1 < scores|length else 0 %}
     <tr class="{{ 'me' if entry.user_id == current_user_id else '' }}">
       <td>{{ idx }}</td>
       <td class="name">{{ entry.display_name }}</td>
       <td>{{ entry.score }}</td>
-      <td class="progress">{% if remain > 0 %}🥊 {{ remain }}<br>More{% else %}—{% endif %}</td>
     </tr>
   {% endfor %}
 </table>
