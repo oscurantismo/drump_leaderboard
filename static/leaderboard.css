@@ -154,16 +154,12 @@ html, body {
   font-weight: normal;
   color: #000;
 }
-
-/* ──────── TABLE (Ranks 4+) ──────── */
+/* === Table === */
 table {
   width: 100%;
-  table-layout: fixed;
-  word-wrap: break-word;
   border-spacing: 0 14px;
-  margin-top: 36px;
+  margin-top: 40px;
 }
-
 
 thead th {
   background: #FFF2C5;
@@ -173,20 +169,12 @@ thead th {
   padding: 12px 10px;
   border-radius: 14px;
   text-align: left;
+  box-shadow: 2px 2px 0 #000;
 }
 
-thead th:nth-child(1) {
-  width: 20%;
-}
-
-thead th:nth-child(2) {
-  width: 50%;
-}
-
-thead th:nth-child(3) {
-  width: 30%;
-  text-align: center;
-}
+thead th:nth-child(1) { width: 20%; text-align: left; }
+thead th:nth-child(2) { width: 50%; }
+thead th:nth-child(3) { width: 30%; text-align: center; }
 
 tbody tr {
   background: #FFF2C5;
@@ -203,7 +191,7 @@ tbody tr.me {
 }
 
 tbody td {
-  padding: 14px 12px;
+  padding: 14px 10px;
   text-align: left;
   font-family: 'Negrita Pro', sans-serif;
 }
