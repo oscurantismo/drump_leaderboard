@@ -13,8 +13,10 @@ html, body {
   height: 100%;
   overflow: hidden;
   font-family: 'Negrita Pro', sans-serif;
-  background: url("background.png") no-repeat center center;
+  background: url("background.png") center top no-repeat;
   background-size: cover;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
 }
 
 .leaderboard-container {
@@ -50,19 +52,19 @@ html, body {
   font-family: 'Negrita Pro', sans-serif;
 }
 
-.slot .ring {
+.ring {
   width: 108px;
   height: 108px;
   border-radius: 50%;
   background: #FFF2C5;
+  border: 6px solid #2a3493;
   font-size: 26px;
   font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  z-index: 2;
-  border: 6px solid #2a3493;
+  z-index: 1;
 }
 
 .slot.gold .ring {
@@ -103,24 +105,23 @@ html, body {
   z-index: 3;
 }
 
-/* Initial circle at bottom */
 .initials {
   position: absolute;
-  bottom: -20px;
+  bottom: -18px;               /* overlaps bottom of .ring */
   left: 50%;
   transform: translateX(-50%);
   background: #d11b1b;
-  color: #fff;
+  color: white;
   font-size: 13px;
   font-weight: 700;
   width: 40px;
   height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
   box-shadow: 2px 2px 0 #000;
-  z-index: 4;
+  z-index: 3;                  /* above the .ring but below the crown */
 }
 
 .slot.silver .initials,
