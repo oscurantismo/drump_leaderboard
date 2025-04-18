@@ -1,5 +1,7 @@
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: #2a3493 transparent;
 }
 
 body::-webkit-scrollbar {
@@ -30,6 +32,7 @@ html, body {
   box-sizing: border-box;
   max-width: 480px;
   margin: 0 auto;
+  align-items: center;
 }
 
 /* ──────── PODIUM ──────── */
@@ -170,6 +173,14 @@ html, body {
   color: #000;
 }
 
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 14px;
+  margin-top: 40px;
+  font-family: 'Negrita Pro', sans-serif;
+}
+
 thead {
   display: block;
   border-radius: 14px;
@@ -178,7 +189,8 @@ thead {
   background: #FFEDAC;
   width: 100%;
   margin-bottom: 20px;
-  box-shadow: 2px 2px 0 #000;   /* ✅ same shadow as initials */
+  box-shadow: 2px 2px 0 #000;
+  width: 100%;
 }
 
 thead tr {
@@ -204,6 +216,7 @@ thead th:nth-child(3) { flex: 1.2; text-align: center; }
 
 tbody {
   display: block;
+  width: 100%;
   width: 100%;
 }
 
@@ -274,3 +287,16 @@ html, body {
   animation: fadeSlideIn 0.5s ease-out;
 }
 
+/* Scrollbar styles */
+.leaderboard-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.leaderboard-container::-webkit-scrollbar-thumb {
+  background: #2a3493;       /* Primary color */
+  border-radius: 4px;
+}
+
+.leaderboard-container::-webkit-scrollbar-track {
+  background: transparent;
+}
