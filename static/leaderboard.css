@@ -1,180 +1,158 @@
-/* leaderboard.css */
-
-/* ───────── Theme Tokens ───────── */
 :root {
   --primary: #2a3493;
-  --offwhite: #f8f9fe;
-  --deepred: #8e0004;
-  --gold: #d11b1b;
-  --bg: #ffe242;
-  --cream: #FFF2C5;
-  --black: #000;
+  --light: #FFF2C5;
+  --dark: #000;
+  --red: #d11b1b;
 }
 
-/* ───────── Layout & Background ───────── */
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  font-family: 'Negrita Pro', sans-serif;
-  background: url("background.png") no-repeat center center fixed;
+/* 🟨 Main container with padding */
+.leaderboard-container {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 16px 12px 100px;
+  box-sizing: border-box;
+  background-image: url('background.png');
   background-size: cover;
-  overflow-x: hidden;
-  color: var(--black);
+  background-position: center;
+  min-height: 100vh;
 }
 
-/* ───────── Top 3 Podium ───────── */
+/* 🏆 Podium container */
 .podium {
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   align-items: flex-end;
-  gap: 24px;
-  margin-top: 80px;
-  position: relative;
-}
-
-.slot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  position: relative;
+  gap: 14px;
   margin-top: 20px;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
-.slot.gold {
-  margin-top: 0;
-  z-index: 2;
-}
+/* ⬆ Adjust first place position */
+.slot.gold { margin-top: -14px; }
 
-.ring {
-  width: 100px;
-  height: 100px;
-  background: var(--cream);
+/* 🟡 Ring style */
+.slot .ring {
+  width: 76px;
+  height: 76px;
+  background: var(--light);
   border-radius: 50%;
-  border: 6px solid var(--gold);
+  border: 4px solid var(--primary);
+  font-family: 'Negrita Pro', sans-serif;
+  font-size: 20px;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 900;
-  font-size: 26px;
   position: relative;
 }
 
-.slot.silver .ring,
-.slot.bronze .ring {
-  border-color: var(--primary);
-}
+.slot.gold .ring { border-color: var(--red); }
 
-/* Crown image */
+/* 👑 Crown */
 .crown {
   position: absolute;
-  top: -26px;
+  top: -22px;
   left: 50%;
   transform: translateX(-50%);
-  width: 44px;
-  height: 26px;
-  background: url("crown.png") no-repeat center center;
-  background-size: contain;
+  width: 36px;
+  height: 20px;
+  background: url('crown.png') no-repeat center / contain;
 }
 
-/* Lower badge with initials */
-.initials {
-  position: absolute;
-  bottom: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 34px;
-  height: 34px;
-  background: var(--red);
+/* 🟦 Name circle (initials) */
+.slot .initial {
+  width: 26px;
+  height: 26px;
+  background: var(--primary);
   color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #fff;
-  z-index: 3;
+  border-radius: 50%;
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-/* ───────── Name & Punch Container ───────── */
-.info-badge {
-  background: var(--cream);
-  border: 2px solid #000;
-  padding: 6px 12px;
-  border-radius: 10px;
-  box-shadow: 3px 3px 0 #000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: 'Negrita Pro', sans-serif;
+/* 📛 Name + Punch block */
+.slot .label {
   margin-top: 12px;
-  min-width: 120px;
-}
-
-.info-badge .name {
-  font-size: 14px;
-  font-weight: 800;
-  margin-bottom: 2px;
+  background: var(--light);
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 #000;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-family: 'Negrita Pro', sans-serif;
   text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.info-badge .score {
   font-size: 13px;
-  font-family: 'Commissioner', sans-serif;
-  color: var(--black);
-  text-align: center;
+  max-width: 110px;
 }
 
-/* ───────── Leaderboard Table ───────── */
+.slot .label .score {
+  display: block;
+  font-size: 12px;
+  font-family: 'Commissioner', sans-serif;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
+/* 🧾 Table header */
 table {
-  width: 92%;
-  margin: 40px auto 120px;
+  width: 100%;
+  margin-top: 28px;
   border-collapse: separate;
   border-spacing: 0 12px;
   font-size: 14px;
+  font-family: 'Commissioner', sans-serif;
 }
 
-th {
-  background: var(--cream);
-  color: var(--black);
-  padding: 10px;
-  border-radius: 18px;
-  font-weight: 900;
-  text-align: center;
-  box-shadow: 3px 3px 0 #000;
-  font-family: 'Negrita Pro', sans-serif;
-}
-
-tr {
+/* Header row wrapper */
+thead tr th {
+  background: var(--light);
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 #000;
   border-radius: 12px;
-  display: block;
-  background: var(--cream);
-  box-shadow: 3px 3px 0 #000;
-  padding: 8px 12px;
-  margin-bottom: 10px;
+  padding: 10px 8px;
+  font-weight: bold;
   font-family: 'Negrita Pro', sans-serif;
-}
-
-tr.me {
-  background: var(--primary);
-  color: var(--offwhite);
-  box-shadow: none;
-}
-
-td {
-  display: inline-block;
-  min-width: 60px;
-  text-align: center;
-  font-weight: 700;
-}
-
-td.name {
   text-align: left;
-  width: 45%;
+}
+
+/* Remove separate backgrounds and borders per column */
+thead tr {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+/* Each th behaves like a cell */
+thead th:nth-child(1) { width: 15%; text-align: center; }
+thead th:nth-child(2) { width: 50%; }
+thead th:nth-child(3) { width: 35%; text-align: right; }
+
+/* 📄 User rows */
+tbody tr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 1px 1px 0 #000;
+  padding: 12px 10px;
+  font-size: 14px;
+  gap: 6px;
+}
+
+tbody td:nth-child(1) { width: 15%; text-align: center; font-weight: bold; }
+tbody td:nth-child(2) { width: 50%; font-weight: 600; }
+tbody td:nth-child(3) { width: 35%; text-align: right; }
+
+/* Highlighted row */
+tr.me {
+  background: var(--primary) !important;
+  color: var(--offWhite) !important;
 }
