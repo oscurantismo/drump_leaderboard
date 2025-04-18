@@ -14,7 +14,8 @@ from routes.user import user_routes
 from routes.leaderboard import leaderboard_routes
 from routes.referral import referral_routes
 from routes.admin import admin_routes  # ✅ import only
-from routes.debug_tools.reward_logs import reward_logs_bp
+from routes.rewards import rewards_bp
+from routes.reward_logs import reward_logs_bp
 from routes.tasks import tasks_routes
 
 # ✅ NEW: Import debug tools module (modularised logging routes)
@@ -50,6 +51,7 @@ app.register_blueprint(user_routes)
 app.register_blueprint(leaderboard_routes)
 app.register_blueprint(referral_routes)
 app.register_blueprint(admin_routes)
+app.register_blueprint(rewards_bp)
 app.register_blueprint(reward_logs_bp)
 app.register_blueprint(tasks_routes)
 
