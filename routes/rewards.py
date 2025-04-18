@@ -12,10 +12,16 @@ from flask import Blueprint, request, jsonify, session
 rewards_bp = Blueprint("rewards", __name__)
 REWARDS_FILE = "rewards.json"
 
-# ---------- helpers ------------------------------------------------------- #
-def _load() -> list[dict]:
+def ensure_rewards_file():
     if not os.path.exists(REWARDS_FILE):
-        return []
+        with open(REWARDS_FILE, "w") as f:
+            json.dump([], f)
+        print("✅ Created rewards.json")
+
+# ---------- helpers ------------------------------------------------------- #
+
+def _load() -> list[dict]:
+    ensure_rewards_file()  # 🔐 Ensure rewards.json exists before reading
     try:
         with open(REWARDS_FILE, "r") as f:
             return json.load(f)
