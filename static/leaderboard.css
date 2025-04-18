@@ -18,21 +18,26 @@ html, body {
   background-size: cover;
   background-attachment: fixed;
   background-repeat: no-repeat;
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  will-change: scroll-position;
 }
 
+/* Leaderboard container layout */
 .leaderboard-container {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding: 80px 16px 120px;
   box-sizing: border-box;
   max-width: 480px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  animation: fadeSlideIn 0.5s ease-out;
 }
 
 /* ──────── PODIUM ──────── */
@@ -51,6 +56,20 @@ html, body {
   align-items: center;
   position: relative;
   font-family: 'Negrita Pro', sans-serif;
+  animation: popin 0.5s ease-out both;
+}
+
+.slot.gold {
+  order: 2;
+  transform: translateY(-14px);
+}
+.slot.silver {
+  order: 1;
+  transform: translateY(6px);
+}
+.slot.bronze {
+  order: 3;
+  transform: translateY(6px);
 }
 
 .ring {
@@ -71,37 +90,6 @@ html, body {
 .slot.gold .ring { border-color: #d11b1b; }
 .slot.silver .ring, .slot.bronze .ring { border-color: #2a3493; }
 
-/* Positioning */
-.slot.gold {
-  order: 2;
-  transform: translateY(-34px);
-}
-.slot.silver {
-  order: 1;
-  transform: translateY(6px);
-}
-.slot.bronze {
-  order: 3;
-  transform: translateY(6px);
-}
-
-@keyframes popin {
-  from {
-    transform: scale(0.9) translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
-}
-
-.podium .slot {
-  animation: popin 0.5s ease-out both;
-}
-
-
-/* Crown */
 .crown {
   position: absolute;
   top: -18px;
@@ -114,7 +102,6 @@ html, body {
   z-index: 3;
 }
 
-/* Initials badge inside the ring */
 .initials {
   position: absolute;
   top: 100%;
@@ -133,7 +120,6 @@ html, body {
   box-shadow: 2px 2px 0 #000;
   z-index: 3;
 }
-
 .slot.silver .initials,
 .slot.bronze .initials {
   background: #2a3493;
@@ -141,11 +127,11 @@ html, body {
 
 /* Unified badge: name + score */
 .info-badge {
-  background: #FFEDAC;                           /* ✅ updated background */
+  background: #FFEDAC;
   padding: 10px 14px;
   border-radius: 12px;
   border: 2px solid #000;
-  box-shadow: 2px 2px 0 #000;                   /* ✅ added shadow */
+  box-shadow: 2px 2px 0 #000;
   margin-top: 32px;
   max-width: 140px;
   text-align: center;
@@ -154,7 +140,7 @@ html, body {
 
 .info-badge .name,
 .info-badge .score {
-  display: block;                                /* ✅ forces 2-line layout */
+  display: block;
   line-height: 1.4;
 }
 
@@ -173,6 +159,7 @@ html, body {
   color: #000;
 }
 
+/* === TABLE === */
 table {
   width: 100%;
   border-collapse: separate;
@@ -190,7 +177,6 @@ thead {
   width: 100%;
   margin-bottom: 20px;
   box-shadow: 2px 2px 0 #000;
-  width: 100%;
 }
 
 thead tr {
@@ -201,11 +187,11 @@ thead tr {
 
 thead th {
   flex: 1;
-  padding: 16px 10px; /* ✅ increased padding */
+  padding: 16px 10px;
   text-align: left;
-  font-size: 16px;     /* ✅ larger text size */
+  font-size: 16px;
   font-weight: bold;
-  border-right: none;  /* ✅ no separators */
+  border-right: none;
 }
 
 thead th:nth-child(1) { flex: 0.8; }
@@ -213,10 +199,8 @@ thead th:nth-child(2) { flex: 2; }
 thead th:nth-child(3) { flex: 1.2; text-align: center; }
 
 /* === Body Rows === */
-
 tbody {
   display: block;
-  width: 100%;
   width: 100%;
 }
 
@@ -244,14 +228,8 @@ tbody td {
   padding: 14px 10px;
 }
 
-tbody td:nth-child(1) {
-  flex: 0.8;
-}
-
-tbody td:nth-child(2) {
-  flex: 2;
-}
-
+tbody td:nth-child(1) { flex: 0.8; }
+tbody td:nth-child(2) { flex: 2; }
 tbody td:nth-child(3) {
   flex: 1.2;
   text-align: center;
@@ -259,19 +237,7 @@ tbody td:nth-child(3) {
   font-weight: normal;
 }
 
-/* === Scroll fix & anti-glitch === */
-html, body {
-  backface-visibility: hidden;
-  -webkit-transform: translateZ(0);
-  will-change: scroll-position;
-}
-
-.leaderboard-container {
-  -webkit-overflow-scrolling: touch;
-  overflow-y: scroll;
-  overscroll-behavior: contain;
-}
-
+/* Animations */
 @keyframes fadeSlideIn {
   from {
     transform: translateY(30px);
@@ -283,8 +249,15 @@ html, body {
   }
 }
 
-.leaderboard-container {
-  animation: fadeSlideIn 0.5s ease-out;
+@keyframes popin {
+  from {
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Scrollbar styles */
@@ -293,7 +266,7 @@ html, body {
 }
 
 .leaderboard-container::-webkit-scrollbar-thumb {
-  background: #2a3493;       /* Primary color */
+  background: #2a3493;
   border-radius: 4px;
 }
 
