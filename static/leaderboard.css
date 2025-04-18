@@ -146,23 +146,14 @@ html, body {
   color: #000;
 }
 
-/* ──────── TABLE ──────── */
-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 14px;
-  margin-top: 40px;
-  font-family: 'Negrita Pro', sans-serif;
-}
-
-/* Single bar heading */
 thead {
   display: block;
   border-radius: 14px;
   overflow: hidden;
   border: 2px solid #000;
-  background: #FFF2C5;
+  background: #FFEDAC; /* ✅ updated background */
   width: 100%;
+  margin-bottom: 20px;  /* ✅ spacing between header and table rows */
 }
 
 thead tr {
@@ -173,15 +164,18 @@ thead tr {
 
 thead th {
   flex: 1;
-  padding: 12px 10px;
+  padding: 16px 10px; /* ✅ increased padding */
   text-align: left;
-  font-size: 14px;
+  font-size: 16px;     /* ✅ larger text size */
   font-weight: bold;
+  border-right: none;  /* ✅ no separators */
 }
 
 thead th:nth-child(1) { flex: 0.8; }
 thead th:nth-child(2) { flex: 2; }
 thead th:nth-child(3) { flex: 1.2; text-align: center; }
+
+/* === Body Rows === */
 
 tbody {
   display: block;
@@ -225,4 +219,17 @@ tbody td:nth-child(3) {
   text-align: center;
   font-family: 'Commissioner', sans-serif;
   font-weight: normal;
+}
+
+/* === Scroll fix & anti-glitch === */
+html, body {
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  will-change: scroll-position;
+}
+
+.leaderboard-container {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
 }
