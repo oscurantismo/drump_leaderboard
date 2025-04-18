@@ -48,20 +48,24 @@
 
 <!-- =====================  RANKS 4+ TABLE  ===================== -->
 <table>
-  <tr>
-    <th>No.</th>
-    <th>Name</th>
-    <th>Punches</th>
-  </tr>
-  {% for entry in scores[3:50] %}
-    {% set idx = loop.index + 3 %}
-    <tr class="{{ 'me' if entry.user_id == current_user_id else '' }}">
-      <td>{{ idx }}</td>
-      <td class="name">{{ entry.display_name }}</td>
-      <td>{{ entry.score }}</td>
+  <thead>
+    <tr>
+      <th>No.</th>
+      <th>Name</th>
+      <th>Punches</th>
     </tr>
-  {% endfor %}
+  </thead>
+  <tbody>
+    {% for entry in scores[3:50] %}
+      <tr class="{{ 'me' if entry.user_id == current_user_id else '' }}">
+        <td>{{ loop.index + 3 }}</td>
+        <td>{{ entry.display_name }}</td>
+        <td>🥊 {{ entry.score }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
 </table>
+
 </div>
 
 </body>
