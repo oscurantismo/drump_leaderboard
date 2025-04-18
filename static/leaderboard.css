@@ -8,18 +8,17 @@ body {
 .leaderboard-container {
   max-width: 480px;
   margin: 0 auto;
-  padding: 80px 16px 120px; /* padding-top ensures spacing under topbar */
+  padding: 80px 16px 120px; /* top space for topbar */
   box-sizing: border-box;
 }
 
 /* ──────── PODIUM ──────── */
 .podium {
   display: flex;
-  justify-content: center;
   align-items: flex-end;
-  gap: 28px;
-  margin-top: 20px;
-  position: relative;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 60px 24px 40px;
 }
 
 .slot {
@@ -27,91 +26,106 @@ body {
   flex-direction: column;
   align-items: center;
   position: relative;
+  text-align: center;
+  font-family: 'Negrita Pro', sans-serif;
 }
 
-.slot .circle {
-  width: 96px;
-  height: 96px;
-  background: #FFF2C5;
+.slot .ring {
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
-  border: 6px solid;
-  font-size: 24px;
+  background: #FFF2C5;
+  border: 6px solid #2a3493;
+  font-size: 28px;
   font-weight: 900;
-  color: #000;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
+  position: relative;
+  z-index: 2;
 }
 
-.slot.gold .circle { border-color: #d11b1b; }
-.slot.silver .circle { border-color: #2a3493; }
-.slot.bronze .circle { border-color: #2a3493; }
+.slot.gold .ring {
+  border-color: #d11b1b;
+}
 
-.slot.gold { transform: translateY(-16px); }
-.slot.silver, .slot.bronze { transform: translateY(0); }
+.slot.silver .ring,
+.slot.bronze .ring {
+  border-color: #2a3493;
+}
+
+.slot.gold {
+  transform: translateY(-20px);
+}
 
 .crown {
   position: absolute;
-  top: -18px;
+  top: -22px;
   left: 50%;
   transform: translateX(-50%);
   width: 44px;
   height: 30px;
   background: url("crown.png") no-repeat center;
   background-size: contain;
-  z-index: 2;
+  z-index: 3;
 }
 
-.initial {
+/* Initial circle overlapping lower part */
+.initials {
   position: absolute;
-  bottom: -14px;
-  width: 40px;
-  height: 40px;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
   background: #d11b1b;
   color: white;
-  font-weight: bold;
   font-size: 14px;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  z-index: 3;
-  border: 2px solid #FFF2C5;
+  z-index: 4;
+  box-shadow: 2px 2px 0 #000;
 }
 
-.slot.silver .initial,
-.slot.bronze .initial {
+.slot.silver .initials,
+.slot.bronze .initials {
   background: #2a3493;
 }
 
-/* NAME + SCORE WRAPPER */
-.label, .score {
+/* Unified badge: name + score */
+.info-badge {
   background: #FFF2C5;
-  padding: 4px 12px;
+  padding: 8px 12px;
   border-radius: 12px;
   border: 2px solid #000;
   box-shadow: 2px 2px 0 #000;
+  margin-top: 32px;
+  max-width: 140px;
+}
+
+.info-badge .name {
+  font-family: 'Negrita Pro', sans-serif;
   font-size: 14px;
   font-weight: bold;
-  margin-top: 28px;
-  text-align: center;
-  max-width: 120px;
+  margin-bottom: 4px;
   word-wrap: break-word;
 }
 
-.score {
+.info-badge .score {
   font-family: 'Commissioner', sans-serif;
   font-size: 13px;
   font-weight: normal;
-  margin-top: 4px;
+  color: #000;
 }
 
 /* ──────── TABLE (Ranks 4+) ──────── */
 table {
   width: 100%;
   border-spacing: 0 14px;
-  margin-top: 40px;
+  margin-top: 36px;
 }
 
 thead th {
@@ -120,13 +134,22 @@ thead th {
   font-size: 14px;
   font-weight: bold;
   padding: 12px 10px;
-  border-radius: 12px;
+  border-radius: 14px;
   text-align: left;
 }
 
-thead th:nth-child(1) { width: 20%; text-align: left; }
-thead th:nth-child(2) { width: 50%; }
-thead th:nth-child(3) { width: 30%; text-align: center; }
+thead th:nth-child(1) {
+  width: 20%;
+}
+
+thead th:nth-child(2) {
+  width: 50%;
+}
+
+thead th:nth-child(3) {
+  width: 30%;
+  text-align: center;
+}
 
 tbody tr {
   background: #FFF2C5;
@@ -143,7 +166,7 @@ tbody tr.me {
 }
 
 tbody td {
-  padding: 12px 10px;
+  padding: 14px 12px;
   text-align: left;
   font-family: 'Negrita Pro', sans-serif;
 }
