@@ -12,7 +12,7 @@ from flask import Blueprint, request, jsonify, session
 from utils.logging import log_event  # ✅ Logging to logs.txt
 
 rewards_bp = Blueprint("rewards", __name__)
-REWARDS_FILE = "rewards.json"
+REWARDS_FILE = "/app/data/rewards.json"
 
 # ---------- Ensure rewards.json exists ----------------------------------- #
 def ensure_rewards_file():
