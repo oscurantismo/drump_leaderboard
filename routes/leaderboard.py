@@ -92,21 +92,35 @@ modern_leaderboard_template = """
 </html>
 """
 
-
 maintenance_template = """<!DOCTYPE html>
-<html><head>
- <title>🚧 Maintenance</title>
- <style>
-  body{display:flex;align-items:center;justify-content:center;height:100vh;margin:0;
-       font-family:'Segoe UI',sans-serif;background:#f8f9fe;color:#2a3493;}
-  .box{border:2px solid #2a3493;border-radius:10px;padding:24px;text-align:center;background:#ffffff;}
- </style>
-</head><body>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>🚧 Maintenance</title>
+  <style>
+    /* full‑width background */
+    html,body{height:100%;margin:0;width:100vw;overflow-x:hidden;
+              font-family:'Segoe UI',sans-serif;background:#f8f9fe;color:#2a3493;}
+
+    /* flex‑centre the notice */
+    body{display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:0 16px;}
+
+    /* message card */
+    .box{
+      width:100%;max-width:420px;
+      background:#fff;border:2px solid #2a3493;border-radius:10px;
+      padding:24px;text-align:center;box-sizing:border-box;
+    }
+  </style>
+</head>
+<body>
   <div class="box">
-    <h2>🚧 Leaderboard under maintenance</h2>
+    <h2 style="margin-top:0">🚧 Leaderboard under maintenance</h2>
     <p>Please check back soon – we’re improving your experience.</p>
   </div>
-</body></html>"""
+</body>
+</html>"""
+
 # ------------------------------------------------------------------------- #
 @leaderboard_routes.route("/leaderboard")
 def get_leaderboard():
