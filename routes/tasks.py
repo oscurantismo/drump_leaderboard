@@ -86,6 +86,10 @@ def complete_task():
     user["score"] = new
     save_scores(scores)
 
+    # --- diagnostic log before reward logging ---------------------------- #
+    log_event(f"📡 REACHED log_reward_event for user {user_id}, task {task_id}")
+    print(f"📡 REACHED log_reward_event for user {user.get('username', 'Anonymous')} ({user_id}), task {task_id}")
+
     # --- log to central ledger ------------------------------------------ #
     log_reward_event(
         user_id=user_id,
