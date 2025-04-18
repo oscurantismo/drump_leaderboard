@@ -107,9 +107,9 @@ html, body {
 
 .initials {
   position: absolute;
-  bottom: -18px;               /* overlaps bottom of .ring */
+  top: 100%; /* places it directly below the ring */
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%); /* overlaps the bottom edge */
   background: #d11b1b;
   color: white;
   font-size: 13px;
@@ -121,7 +121,7 @@ html, body {
   align-items: center;
   justify-content: center;
   box-shadow: 2px 2px 0 #000;
-  z-index: 3;                  /* above the .ring but below the crown */
+  z-index: 3;
 }
 
 .slot.silver .initials,
