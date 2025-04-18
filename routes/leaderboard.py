@@ -6,60 +6,92 @@ from routes.rewards import log_reward_event, _load as load_reward_ledger   # ←
 
 leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
-MAINTENANCE_MODE      = False
+MAINTENANCE_MODE      = True
 ENABLE_REWARD_ISSUING = False   # flip to True to activate tier bonuses
 
 # ------------------------------------------------------------------------- #
-modern_leaderboard_template = """<!DOCTYPE html>
-<html><head>
-<title>🏆 Leaderboard</title>
-<style>
- body{font-family:'Segoe UI',sans-serif;background:#ffffff;padding:20px;color:#002868;text-align:center;margin-bottom:200px;}
- h2{color:#0047ab;font-size:26px;margin-bottom:10px;}
- .rank-summary{margin-top:10px;font-size:18px;color:#333;}
- .progress-text{font-size:15px;color:#888;margin-bottom:10px;}
- table{width:100%;border-collapse:collapse;margin-top:20px;margin-bottom:20px;}
- th,td{padding:10px;border-bottom:1px solid #ddd;font-size:15px;}
- th{background:#0047ab;color:#fff;}
- tr.highlight{background:#ffeeba!important;animation:flash 1s ease-in-out;}
- tr:hover{background:#f1f1f1;}
- button{padding:10px 16px;margin:10px 6px;font-size:14px;border:none;border-radius:8px;background:#0047ab;color:#fff;cursor:pointer;}
- .footer{text-align:center;font-size:13px;font-style:italic;color:#666;margin-top:10px;}
- .history{margin-top:20px;text-align:left;}
- .history ul{list-style:none;padding-left:0;}
- .history li{padding:6px 0;border-bottom:1px solid #eee;}
- @keyframes flash{from{background:#fff3cd;}to{background:#ffeeba;}}
-</style>
-<script>
- function toggleHistory(){
-   const h=document.getElementById("history");
-   h.style.display=h.style.display==="none"?"block":"none";
- }
-</script>
-</head><body>
-  <h2>🏆 Leaderboard</h2>
-  {% if user_rank %}
-    <div class="rank-summary">👤 Your Rank: {{ user_rank }}</div>
-    <div class="progress-text">🔼 {{ progress_text }}</div>
-  {% endif %}
-  {% if scores %}
-    <table>
-      <tr><th>#</th><th>Username</th><th>Score</th></tr>
-      {% for entry in scores %}
-      <tr class="{% if entry.user_id == current_user_id %}highlight{% endif %}">
-        <td>{% if loop.index==1 %}🥇{% elif loop.index==2 %}🥈{% elif loop.index==3 %}🥉{% else %}{{ loop.index }}{% endif %}</td>
-        <td>{{ entry.display_name }}</td>
-        <td>{{ entry.score }}</td>
-      </tr>
-      {% endfor %}
-    </table>
-    <div class="footer">showing {{ scores|length }}/{{ total_players }} players</div>
-    <button onclick="toggleHistory()">📈 Your Leaderboard Progress</button>
-    <div id="history" class="history" style="display:none;">
-      <ul>{% for h in movement_history %}<li>{{ h|safe }}</li>{% endfor %}</ul>
-    </div>
-  {% endif %}
-</body></html>"""
+modern_leaderboard_template = """
+<!DOCTYPE html>
+<html>
+<head>
+ <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+ <title>🏆 Leaderboard</title>
+ <style>
+  :root{
+    --primary:#2a3493;   /* DRUMP colours */
+    --offwhite:#f8f9fe;
+    --deepred:#8e0004;
+    --badge:#FFCC68;
+    --gold:#ffcc00; --silver:#c0c0c0; --bronze:#cd7f32;
+  }
+  /* ---------- Layout ---------- */
+  body{margin:0;width:100vw;height:100vh;font-family:'Segoe UI',sans-serif;
+       background:#ffe242 radial-gradient(circle at center,#ffe242 0%,#ffde28 40%,#ffd608 70%);
+       display:flex;flex-direction:column;align-items:center;overflow-x:hidden;color:#000;}
+  h2{margin:16px 0 12px;font-size:26px;color:#000;text-shadow:0 1px 0 #fff;}
+  /* ---------- Podium ---------- */
+  .podium{display:flex;gap:18px;margin-top:10px;}
+  .podium .slot{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .podium .circ{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+                border:6px solid var(--gold);font-weight:bold;font-size:24px;background:#fff;}
+  .slot.silver .circ{border-color:var(--silver);}
+  .slot.bronze .circ{border-color:var(--bronze);}
+  .slot .name{background:#fff;border:2px solid #000;border-radius:10px;padding:4px 8px;font-size:13px;font-weight:600;}
+  .slot .score{font-size:12px;color:#deepred;margin-top:-2px;}
+  /* ---------- Table ---------- */
+  table{width:90%;border-collapse:separate;border-spacing:0 10px;margin:24px auto;font-size:14px;}
+  th{background:#000;color:#fff;padding:10px 4px;border-radius:12px;}
+  td{background:#fff;padding:12px 6px;border-radius:12px;}
+  tr.me td{background:var(--primary);color:var(--offwhite);}
+  td:nth-child(1){width:12%;}
+  td:nth-child(2){text-align:left;font-weight:600;width:48%;}
+  td:nth-child(3),td:nth-child(4){text-align:center;width:20%;}
+  .progress{font-size:11px;color:var(--deepred);}
+  /* ---------- Utility ---------- */
+  .wrap{flex:1;overflow-y:auto;width:100%;display:flex;flex-direction:column;align-items:center;padding-bottom:120px;}
+ </style>
+</head>
+<body>
+ <h2>🏆 Leader Board</h2>
+
+ <!-- ======= TOP‑3 PODIUM ======= -->
+ {% if scores|length >= 1 %}
+ <div class="podium">
+   {% set top=scores[:3] %}
+   {% for slot,index in [(1,1),(0,0),(2,2)] %}{# silver, gold, bronze ordering #}
+   {% if top|length > index %}
+     {% set p = top[index] %}
+     <div class="slot {{ 'silver' if slot==1 else 'gold' if slot==0 else 'bronze' }}">
+       <div class="circ">{{ loop.index }}</div>
+       <div class="name">{{ p.display_name }}</div>
+       <div class="score">🥾 {{ p.score }}</div>
+     </div>
+   {% endif %}
+   {% endfor %}
+ </div>
+ {% endif %}
+
+ <!-- ======= RANKS 4+ TABLE ======= -->
+ <div class="wrap">
+ <table>
+   <tr><th>No.</th><th>Name</th><th>Punches</th><th>Next&nbsp;Level</th></tr>
+   {% for entry in scores[3:50] %}
+     {% set idx = loop.index + 3 %}
+     {% set next_score = scores[idx-1].score if idx-1 < scores|length else entry.score %}
+     {% set remaining = (next_score - entry.score + 1) if idx-1 < scores|length else 0 %}
+     <tr class="{{ 'me' if entry.user_id == current_user_id else '' }}">
+       <td>{{ idx }}</td>
+       <td>{{ entry.display_name }}</td>
+       <td>{{ entry.score }}</td>
+       <td class="progress">{% if remaining > 0 %}🥾 {{ remaining }}<br>More{% else %}—{% endif %}</td>
+     </tr>
+   {% endfor %}
+ </table>
+ </div>
+</body>
+</html>
+"""
+
 
 maintenance_template = """<!DOCTYPE html>
 <html><head>
