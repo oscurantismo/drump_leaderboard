@@ -1,21 +1,23 @@
 # routes/reward_logs.py
 import os, json
 from flask import Blueprint, request, render_template_string
+from routes.rewards import ensure_rewards_file  # ✅ (optional)
 
 reward_logs_bp = Blueprint("reward_logs", __name__)
 REWARDS_FILE = "rewards.json"
 
-# routes/reward_logs.py  – replace the entire reward_logs_page() function
 @reward_logs_bp.route("/reward-logs")
 def reward_logs_page():
+    ensure_rewards_file()  # ✅ Ensure file exists
+
     # --- load ledger (silently fall back to empty) -----------------------
     logs = []
     if os.path.exists(REWARDS_FILE):
         try:
             with open(REWARDS_FILE) as f:
                 logs = json.load(f)
-        except json.JSONDecodeError:
-            pass   # corrupt file ⇒ treat as zero rewards
+        except json.JSONDecodeError as e:
+            print(f"❌ Failed to read rewards.json: {e}")
 
     # --- optional search filter -----------------------------------------
     q = request.args.get("q", "").lower()
@@ -42,6 +44,7 @@ def reward_logs_page():
     th{background:#0047ab;color:#fff;}
     input[type=text]{padding:6px;width:260px;margin-bottom:10px;}
     .empty{color:#888;font-style:italic;text-align:center;padding:18px;}
+    tr.highlight td { background-color: #ffeeba; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -59,7 +62,7 @@ def reward_logs_page():
     </tr>
     {% if logs %}
       {% for e in logs %}
-      <tr>
+      <tr class="{{ 'highlight' if e.change >= 100 else '' }}">
         <td>{{ e.username }} ({{ e.user_id }})</td>
         <td>{{ e.reward_type }}</td>
         <td>{{ e.source_id }}</td>
@@ -77,4 +80,3 @@ def reward_logs_page():
 """,
         logs=logs,
     )
-
