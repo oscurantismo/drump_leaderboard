@@ -1,39 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>🏆 Leaderboard</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='leaderboard.css') }}">
+  <link rel="stylesheet" href="/static/leaderboard.css" />
 </head>
 <body>
 
+<!-- =====================  TOP‑3 PODIUM  ===================== -->
 {% if top_first %}
 <div class="podium">
   {% if top_second %}
   <div class="slot silver">
     <div class="ring">2nd</div>
-    <div class="badge">{{ top_second.display_name }}</div>
-    <div class="score"> {{ top_second.score }} Punches</div>
+    <div class="initials">{{ top_second.display_name[:1] }}</div>
+    <div class="info-badge">
+      <div class="name">{{ top_second.display_name }}</div>
+      <div class="score">🥊 {{ top_second.score }} Punches</div>
+    </div>
   </div>
   {% endif %}
 
-  <div class="slot gold" style="position:relative;">
+  <div class="slot gold">
     <div class="crown"></div>
     <div class="ring">1st</div>
-    <div class="badge">{{ top_first.display_name }}</div>
-    <div class="score"> {{ top_first.score }} Punches</div>
+    <div class="initials">{{ top_first.display_name[:1] }}</div>
+    <div class="info-badge">
+      <div class="name">{{ top_first.display_name }}</div>
+      <div class="score">🥊 {{ top_first.score }} Punches</div>
+    </div>
   </div>
 
   {% if top_third %}
   <div class="slot bronze">
     <div class="ring">3rd</div>
-    <div class="badge">{{ top_third.display_name }}</div>
-    <div class="score"> {{ top_third.score }} Punches</div>
+    <div class="initials">{{ top_third.display_name[:1] }}</div>
+    <div class="info-badge">
+      <div class="name">{{ top_third.display_name }}</div>
+      <div class="score">🥊 {{ top_third.score }} Punches</div>
+    </div>
   </div>
   {% endif %}
 </div>
 {% endif %}
 
+<!-- =====================  RANKS 4+ TABLE  ===================== -->
 <table>
   <tr><th>No.</th><th>Name</th><th>Punches</th><th>Next&nbsp;Level</th></tr>
   {% for entry in scores[3:50] %}
@@ -44,7 +56,7 @@
       <td>{{ idx }}</td>
       <td class="name">{{ entry.display_name }}</td>
       <td>{{ entry.score }}</td>
-      <td class="progress">{% if remain > 0 %} {{ remain }}<br>More{% else %}—{% endif %}</td>
+      <td class="progress">{% if remain > 0 %}🥊 {{ remain }}<br>More{% else %}—{% endif %}</td>
     </tr>
   {% endfor %}
 </table>
