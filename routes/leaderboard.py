@@ -25,7 +25,7 @@ modern_leaderboard_template = """
     --gold:#ffcc00; --silver:#c0c0c0; --bronze:#cd7f32;
   }
   /* ---------- Layout ---------- */
-  body{margin:0;width:100vw;height:100vh;font-family:'Segoe UI',sans-serif;
+  body{margin:0;width:100%;height:100vh;font-family:'Segoe UI',sans-serif;
        background:#ffe242 radial-gradient(circle at center,#ffe242 0%,#ffde28 40%,#ffd608 70%);
        display:flex;flex-direction:column;align-items:center;overflow-x:hidden;color:#000;}
   h2{margin:16px 0 12px;font-size:26px;color:#000;text-shadow:0 1px 0 #fff;}
@@ -52,7 +52,7 @@ modern_leaderboard_template = """
  </style>
 </head>
 <body>
- <h2>🏆 Leader Board</h2>
+ <h2>🏆 Leaderboard</h2>
 
  <!-- ======= TOP‑3 PODIUM ======= -->
  {% if scores|length >= 1 %}
@@ -95,31 +95,48 @@ modern_leaderboard_template = """
 maintenance_template = """<!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <title>🚧 Maintenance</title>
   <style>
-    /* full‑width background */
-    html,body{height:100%;margin:0;width:100vw;overflow-x:hidden;
-              font-family:'Segoe UI',sans-serif;background:#f8f9fe;color:#2a3493;}
-
-    /* flex‑centre the notice */
-    body{display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:0 16px;}
-
-    /* message card */
+    /* full‑width background (avoid vw to skip scrollbar pixels) */
+    html,body{
+      height:100%;
+      width:100%;          /* ⬅ changed from 100vw */
+      margin:0;
+      overflow-x:hidden;
+      font-family:'Segoe UI',sans-serif;
+      background:#f8f9fe;
+      color:#2a3493;
+    }
+    /* centre the notice */
+    body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:0 16px;
+      box-sizing:border-box;
+    }
     .box{
-      width:100%;max-width:420px;
-      background:#fff;border:2px solid #2a3493;border-radius:10px;
-      padding:24px;text-align:center;box-sizing:border-box;
+      width:100%;
+      max-width:420px;
+      background:#fff;
+      border:2px solid #2a3493;
+      border-radius:10px;
+      padding:24px;
+      text-align:center;
+      box-sizing:border-box;
     }
   </style>
 </head>
 <body>
   <div class="box">
-    <h2 style="margin-top:0">🚧 Leaderboard under maintenance</h2>
-    <p>Please check back soon – we’re improving your experience.</p>
+    <h2 style="margin:0 0 6px">🚧 Leaderboard under maintenance</h2>
+    <p style="margin:0">Please check back soon – we’re improving your experience.</p>
   </div>
 </body>
 </html>"""
+
 
 # ------------------------------------------------------------------------- #
 @leaderboard_routes.route("/leaderboard")
