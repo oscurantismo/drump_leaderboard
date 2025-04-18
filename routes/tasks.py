@@ -89,20 +89,20 @@ def complete_task():
     user["score"] = new
     save_scores(scores)
 
-    # --- log to central ledger ------------------------------------------ #
    # --- log to central ledger ------------------------------------------ #
    log_reward_event(
-    user_id=user_id,
-    username=user.get("username", "Anonymous"),
-    reward_type="task_complete",
-    source_id=task_id,
-    change=reward,
-    prev_score=prev,
-    new_score=new,
-    meta={"task_title": TASK_DEFINITIONS[task_id]["title"]},
+      user_id=user_id,
+      username=user.get("username", "Anonymous"),
+      reward_type="task_complete",
+      source_id=task_id,
+      change=reward,
+      prev_score=prev,
+      new_score=new,
+      meta={"task_title": TASK_DEFINITIONS[task_id]["title"]},
    )
 
-print(f"📝 Logging reward for {user.get('username', 'Anonymous')} ({user_id}) – task_complete:{task_id}")
-
+   # Log to terminal and logs.txt
+   print(f"📝 Logging reward for {user.get('username', 'Anonymous')} ({user_id}) – task_complete:{task_id}")
+   log_event(f"🎁 Logged reward for {user.get('username', 'Anonymous')} ({user_id}) – task_complete:{task_id}")
 
     return jsonify({"status": "ok", "new_score": new, "reward": reward})
