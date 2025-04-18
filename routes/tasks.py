@@ -99,6 +99,7 @@ def complete_task():
         prev_score=prev,
         new_score=new,
         meta={"task_title": TASK_DEFINITIONS[task_id]["title"]},
+       print(f"📝 Logging reward for {username} ({user_id}) – {reward_type}:{source_id}"),
     )
 
     return jsonify({"status": "ok", "new_score": new, "reward": reward})
