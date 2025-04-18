@@ -1,4 +1,5 @@
 /* leaderboard.css */
+
 /* ───────── Theme Tokens ───────── */
 :root {
   --primary: #2a3493;
@@ -29,7 +30,7 @@ html, body {
   justify-content: center;
   align-items: flex-end;
   gap: 24px;
-  margin-top: 80px; /* space below topbar */
+  margin-top: 80px;
   position: relative;
 }
 
@@ -39,11 +40,11 @@ html, body {
   align-items: center;
   gap: 6px;
   position: relative;
-  margin-top: 20px; /* base margin for all */
+  margin-top: 20px;
 }
 
 .slot.gold {
-  margin-top: 0; /* 1st place is higher */
+  margin-top: 0;
   z-index: 2;
 }
 
@@ -63,7 +64,7 @@ html, body {
 
 .slot.silver .ring,
 .slot.bronze .ring {
-  border-color: #2a3493;
+  border-color: var(--primary);
 }
 
 /* Crown image */
@@ -140,44 +141,40 @@ table {
 }
 
 th {
-  background: #000;
-  color: #fff;
-  padding: 10px;
-  border-radius: 12px;
-  font-weight: 700;
-}
-
-td {
   background: var(--cream);
-  padding: 14px 10px;
-  border-radius: 12px;
+  color: var(--black);
+  padding: 10px;
+  border-radius: 18px;
+  font-weight: 900;
   text-align: center;
-  font-family: 'Negrita Pro', sans-serif;
   box-shadow: 3px 3px 0 #000;
+  font-family: 'Negrita Pro', sans-serif;
 }
 
-td.name {
-  text-align: left;
-  font-weight: 700;
-  font-size: 14px;
+tr {
+  border-radius: 12px;
+  display: block;
+  background: var(--cream);
+  box-shadow: 3px 3px 0 #000;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-family: 'Negrita Pro', sans-serif;
 }
 
-tr.me td {
+tr.me {
   background: var(--primary);
   color: var(--offwhite);
   box-shadow: none;
 }
 
-.progress {
-  font-size: 11px;
-  color: var(--deepred);
-  line-height: 16px;
-  font-family: 'Commissioner', sans-serif;
+td {
+  display: inline-block;
+  min-width: 60px;
+  text-align: center;
+  font-weight: 700;
 }
 
-/* Responsive spacing under leaderboard */
-@media screen and (max-height: 740px) {
-  .podium {
-    margin-top: 60px;
-  }
+td.name {
+  text-align: left;
+  width: 45%;
 }
