@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: 'Negrita Pro', sans-serif;
-  background: url("drump-images/background.png") no-repeat center center;
+  background: url("background.png") no-repeat center center;
   background-size: cover;
 }
 
@@ -58,7 +58,7 @@ body {
   transform: translateX(-50%);
   width: 44px;
   height: 30px;
-  background: url("drump-images/crown.png") no-repeat center;
+  background: url("crown.png") no-repeat center;
   background-size: contain;
   z-index: 2;
 }
