@@ -10,87 +10,105 @@ MAINTENANCE_MODE      = False
 ENABLE_REWARD_ISSUING = False   # flip to True to activate tier bonuses
 
 # ------------------------------------------------------------------------- #
-modern_leaderboard_template = """
-<!DOCTYPE html>
+# ------------------------------------------------------------------ #
+modern_leaderboard_template = """<!DOCTYPE html>
 <html>
 <head>
- <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
- <title>🏆 Leaderboard</title>
- <style>
-  :root{
-    --primary:#2a3493;   /* DRUMP colours */
-    --offwhite:#f8f9fe;
-    --deepred:#8e0004;
-    --badge:#FFCC68;
-    --gold:#ffcc00; --silver:#c0c0c0; --bronze:#cd7f32;
-  }
-  /* ---------- Layout ---------- */
-  body{margin:0;width:100%;height:100vh;font-family:'Segoe UI',sans-serif;
-       background:#ffe242 radial-gradient(circle at center,#ffe242 0%,#ffde28 40%,#ffd608 70%);
-       display:flex;flex-direction:column;align-items:center;overflow-x:hidden;color:#000;}
-  h2{margin:16px 0 12px;font-size:26px;color:#000;text-shadow:0 1px 0 #fff;}
-  /* ---------- Podium ---------- */
-  .podium{display:flex;gap:18px;margin-top:10px;}
-  .podium .slot{display:flex;flex-direction:column;align-items:center;gap:4px;}
-  .podium .circ{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-                border:6px solid var(--gold);font-weight:bold;font-size:24px;background:#fff;}
-  .slot.silver .circ{border-color:var(--silver);}
-  .slot.bronze .circ{border-color:var(--bronze);}
-  .slot .name{background:#fff;border:2px solid #000;border-radius:10px;padding:4px 8px;font-size:13px;font-weight:600;}
-  .slot .score{font-size:12px;color:#deepred;margin-top:-2px;}
-  /* ---------- Table ---------- */
-  table{width:90%;border-collapse:separate;border-spacing:0 10px;margin:24px auto;font-size:14px;}
-  th{background:#000;color:#fff;padding:10px 4px;border-radius:12px;}
-  td{background:#fff;padding:12px 6px;border-radius:12px;}
-  tr.me td{background:var(--primary);color:var(--offwhite);}
-  td:nth-child(1){width:12%;}
-  td:nth-child(2){text-align:left;font-weight:600;width:48%;}
-  td:nth-child(3),td:nth-child(4){text-align:center;width:20%;}
-  .progress{font-size:11px;color:var(--deepred);}
-  /* ---------- Utility ---------- */
-  .wrap{flex:1;overflow-y:auto;width:100%;display:flex;flex-direction:column;align-items:center;padding-bottom:120px;}
- </style>
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>🏆 Leaderboard</title>
+<style>
+ /*  ─────────  Theme tokens  ───────── */
+ :root{
+   --blue:#2a3493;
+   --off:#f8f9fe;
+   --dark:#000;
+   --red:#d11b1b;
+   --bg:#ffe242;
+ }
+ /*  ─────────  Layout  ───────── */
+ html,body{margin:0;width:100%;height:100%;overflow-x:hidden;
+           font-family:'Commissioner',sans-serif;background:var(--bg);
+           background:var(--bg) radial-gradient(circle,#ffe242 0%,#ffde28 35%,#ffd608 65%);
+           color:var(--dark);}
+ h1{display:none;}
+ /* Top‑3 section */
+ .podium{display:flex;justify-content:center;gap:22px;margin-top:40px;}
+ .slot{display:flex;flex-direction:column;align-items:center;gap:6px;}
+ .slot .ring{
+   width:92px;height:92px;border-radius:50%;background:#fff;display:flex;
+   align-items:center;justify-content:center;font-weight:900;font-size:28px;
+   border:6px solid var(--blue);}
+ .slot.gold  .ring{border-color:var(--red);}
+ .slot .badge{
+   background:#fff;border:2px solid #000;border-radius:10px;padding:4px 10px;
+   font-weight:600;font-size:13px;max-width:96px;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;}
+ .slot .score{font-size:12px;margin-top:-2px;}
+ /* Crown for 1st */
+ .crown{position:absolute;top:-26px;left:50%;transform:translateX(-50%);
+        width:44px;height:26px;background:var(--red);clip-path:polygon(0 100%,0 50%,25% 0,50% 50%,75% 0,100% 50%,100% 100%);}
+ /*  ─────────  Table  ───────── */
+ table{width:92%;margin:34px auto 140px;border-collapse:separate;border-spacing:0 12px;font-size:14px;}
+ th{background:#000;color:#fff;padding:10px;border-radius:12px;font-weight:700;}
+ td{background:#fff;padding:14px 10px;border-radius:12px;text-align:center;}
+ td.name{text-align:left;font-weight:700;}
+ tr.me td{background:var(--blue);color:var(--off);}
+ .progress{font-size:11px;color:var(--red);line-height:16px;}
+</style>
 </head>
 <body>
- <h2>🏆 Leaderboard</h2>
 
- <!-- ======= TOP‑3 PODIUM ======= -->
- {% if scores|length >= 1 %}
- <div class="podium">
-   {% set top=scores[:3] %}
-   {% for slot,index in [(1,1),(0,0),(2,2)] %}{# silver, gold, bronze ordering #}
-   {% if top|length > index %}
-     {% set p = top[index] %}
-     <div class="slot {{ 'silver' if slot==1 else 'gold' if slot==0 else 'bronze' }}">
-       <div class="circ">{{ loop.index }}</div>
-       <div class="name">{{ p.display_name }}</div>
-       <div class="score">🥾 {{ p.score }}</div>
-     </div>
-   {% endif %}
-   {% endfor %}
- </div>
- {% endif %}
+<!-- =====================  TOP‑3 PODIUM  ===================== -->
+{% if top_first %}
+<div class="podium">
 
- <!-- ======= RANKS 4+ TABLE ======= -->
- <div class="wrap">
- <table>
-   <tr><th>No.</th><th>Name</th><th>Punches</th><th>Next&nbsp;Level</th></tr>
-   {% for entry in scores[3:50] %}
-     {% set idx = loop.index + 3 %}
-     {% set next_score = scores[idx-1].score if idx-1 < scores|length else entry.score %}
-     {% set remaining = (next_score - entry.score + 1) if idx-1 < scores|length else 0 %}
-     <tr class="{{ 'me' if entry.user_id == current_user_id else '' }}">
-       <td>{{ idx }}</td>
-       <td>{{ entry.display_name }}</td>
-       <td>{{ entry.score }}</td>
-       <td class="progress">{% if remaining > 0 %}🥾 {{ remaining }}<br>More{% else %}—{% endif %}</td>
-     </tr>
-   {% endfor %}
- </table>
- </div>
+  {% if top_second %}
+  <div class="slot silver">
+    <div class="ring">2nd</div>
+    <div class="badge">{{ top_second.display_name }}</div>
+    <div class="score">🥾 {{ top_second.score }} Punches</div>
+  </div>
+  {% endif %}
+
+  <div class="slot gold" style="position:relative;">
+    <div class="crown"></div>
+    <div class="ring">1st</div>
+    <div class="badge">{{ top_first.display_name }}</div>
+    <div class="score">🥾 {{ top_first.score }} Punches</div>
+  </div>
+
+  {% if top_third %}
+  <div class="slot bronze">
+    <div class="ring">3rd</div>
+    <div class="badge">{{ top_third.display_name }}</div>
+    <div class="score">🥾 {{ top_third.score }} Punches</div>
+  </div>
+  {% endif %}
+
+</div>
+{% endif %}
+
+<!-- =====================  RANKS 4+ TABLE  ===================== -->
+<table>
+  <tr><th>No.</th><th>Name</th><th>Punches</th><th>Next&nbsp;Level</th></tr>
+  {% for entry in scores[3:50] %}
+    {% set idx = loop.index + 3 %}
+    {% set next_score = scores[idx-1].score if idx-1 < scores|length else entry.score %}
+    {% set remain = (next_score - entry.score + 1) if idx-1 < scores|length else 0 %}
+    <tr class="{{ 'me' if entry.user_id == current_user_id else '' }}">
+      <td>{{ idx }}</td>
+      <td class="name">{{ entry.display_name }}</td>
+      <td>{{ entry.score }}</td>
+      <td class="progress">{% if remain > 0 %}🥾 {{ remain }}<br>More{% else %}—{% endif %}</td>
+    </tr>
+  {% endfor %}
+</table>
+
 </body>
-</html>
-"""
+</html>"""
+# ------------------------------------------------------------------ #
+
+
 
 maintenance_template = """<!DOCTYPE html>
 <html>
@@ -215,10 +233,15 @@ def leaderboard_page():
                             user_rewards.append(label)
         else:
             movement_hist.append("No rewards yet. Punch more to climb the leaderboard!")
+         # extract top‑3 first, second, third AFTER sorting
+         top_first  = sorted_scores[0]  if len(sorted_scores) > 0 else None
+         top_second = sorted_scores[1]  if len(sorted_scores) > 1 else None
+         top_third  = sorted_scores[2]  if len(sorted_scores) > 2 else None
+
 
         return render_template_string(
             modern_leaderboard_template,
-            scores=sorted_scores[:50],
+            scores=sorted_scores,
             current_user_id=current_user_id,
             total_players=total_players,
             user_rank=user_rank,
