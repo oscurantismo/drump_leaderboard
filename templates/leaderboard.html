@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>🏆 Leaderboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='leaderboard.css') }}">
+</head>
+<body>
+
+{% if top_first %}
+<div class="podium">
+  {% if top_second %}
+  <div class="slot silver">
+    <div class="ring">2nd</div>
+    <div class="badge">{{ top_second.display_name }}</div>
+    <div class="score"> {{ top_second.score }} Punches</div>
+  </div>
+  {% endif %}
+
+  <div class="slot gold" style="position:relative;">
+    <div class="crown"></div>
+    <div class="ring">1st</div>
+    <div class="badge">{{ top_first.display_name }}</div>
+    <div class="score"> {{ top_first.score }} Punches</div>
+  </div>
+
+  {% if top_third %}
+  <div class="slot bronze">
+    <div class="ring">3rd</div>
+    <div class="badge">{{ top_third.display_name }}</div>
+    <div class="score"> {{ top_third.score }} Punches</div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<table>
+  <tr><th>No.</th><th>Name</th><th>Punches</th><th>Next&nbsp;Level</th></tr>
+  {% for entry in scores[3:50] %}
+    {% set idx = loop.index + 3 %}
+    {% set next_score = scores[idx-1].score if idx-1 < scores|length else entry.score %}
+    {% set remain = (next_score - entry.score + 1) if idx-1 < scores|length else 0 %}
+    <tr class="{{ 'me' if entry.user_id == current_user_id else '' }}">
+      <td>{{ idx }}</td>
+      <td class="name">{{ entry.display_name }}</td>
+      <td>{{ entry.score }}</td>
+      <td class="progress">{% if remain > 0 %} {{ remain }}<br>More{% else %}—{% endif %}</td>
+    </tr>
+  {% endfor %}
+</table>
+
+</body>
+</html>
