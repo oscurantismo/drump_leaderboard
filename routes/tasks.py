@@ -12,6 +12,7 @@
 from flask import Blueprint, request, jsonify
 from utils.storage import load_scores, save_scores
 from utils.logging import log_event
+from routes.rewards import log_reward_event  # NEW
 
 tasks_routes = Blueprint("tasks_routes", __name__)
 
@@ -32,7 +33,6 @@ TASK_DEFINITIONS = {
 def _get_user_entry(user_id: str, scores: list[dict]) -> dict | None:
     for e in scores:
         if e.get("user_id") == user_id:
-            # Initialize tasks key if missing
             e.setdefault("tasks_done", [])
             return e
     return None
@@ -60,14 +60,11 @@ def list_tasks():
     ])
 
 # === POST /tasks/complete ==================================================
-# ... (imports & TASK_DEFINITIONS unchanged)
-from routes.rewards import log_reward_event    # NEW
-
 @tasks_routes.route("/tasks/complete", methods=["POST"])
 def complete_task():
     data = request.get_json(force=True)
-    user_id  = str(data.get("user_id", "")).strip()
-    task_id  = str(data.get("task_id", "")).strip()
+    user_id = str(data.get("user_id", "")).strip()
+    task_id = str(data.get("task_id", "")).strip()
 
     if not user_id or task_id not in TASK_DEFINITIONS:
         return jsonify({"error": "invalid user_id or task_id"}), 400
@@ -82,27 +79,27 @@ def complete_task():
 
     # --- apply reward ---------------------------------------------------- #
     reward = TASK_DEFINITIONS[task_id]["reward"]
-    prev   = user.get("score", 0)
-    new    = prev + reward
+    prev = user.get("score", 0)
+    new = prev + reward
 
     user["tasks_done"].append(task_id)
     user["score"] = new
     save_scores(scores)
 
-   # --- log to central ledger ------------------------------------------ #
-   log_reward_event(
-      user_id=user_id,
-      username=user.get("username", "Anonymous"),
-      reward_type="task_complete",
-      source_id=task_id,
-      change=reward,
-      prev_score=prev,
-      new_score=new,
-      meta={"task_title": TASK_DEFINITIONS[task_id]["title"]},
-   )
+    # --- log to central ledger ------------------------------------------ #
+    log_reward_event(
+        user_id=user_id,
+        username=user.get("username", "Anonymous"),
+        reward_type="task_complete",
+        source_id=task_id,
+        change=reward,
+        prev_score=prev,
+        new_score=new,
+        meta={"task_title": TASK_DEFINITIONS[task_id]["title"]},
+    )
 
-   # Log to terminal and logs.txt
-   print(f"📝 Logging reward for {user.get('username', 'Anonymous')} ({user_id}) – task_complete:{task_id}")
-   log_event(f"🎁 Logged reward for {user.get('username', 'Anonymous')} ({user_id}) – task_complete:{task_id}")
+    # Log to terminal and logs.txt
+    print(f"📝 Logging reward for {user.get('username', 'Anonymous')} ({user_id}) – task_complete:{task_id}")
+    log_event(f"🎁 Logged reward for {user.get('username', 'Anonymous')} ({user_id}) – task_complete:{task_id}")
 
     return jsonify({"status": "ok", "new_score": new, "reward": reward})
