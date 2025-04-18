@@ -251,14 +251,15 @@ tbody td:nth-child(3) {
 
 @keyframes popin {
   from {
-    transform: scale(0.9) translateY(20px);
+    transform: scale(0.9);
     opacity: 0;
   }
   to {
-    transform: scale(1) translateY(0);
+    transform: scale(1);
     opacity: 1;
   }
 }
+
 
 /* Scrollbar styles */
 .leaderboard-container::-webkit-scrollbar {
