@@ -1,0 +1,136 @@
+/*  ─────────  Theme tokens  ───────── */
+:root {
+  --blue: #2a3493;
+  --off: #f8f9fe;
+  --dark: #000;
+  --red: #d11b1b;
+  --bg: #ffe242;
+}
+
+/*  ─────────  Layout  ───────── */
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  font-family: 'Commissioner', sans-serif;
+  background: var(--bg);
+  background: var(--bg)
+    radial-gradient(circle, #ffe242 0%, #ffde28 35%, #ffd608 65%);
+  color: var(--dark);
+}
+
+h1 {
+  display: none;
+}
+
+/* Top‑3 section */
+.podium {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 40px;
+}
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.slot .ring {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 28px;
+  border: 6px solid var(--blue);
+}
+
+.slot.gold .ring {
+  border-color: var(--red);
+}
+
+.slot .badge {
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 10px;
+  padding: 4px 10px;
+  font-weight: 600;
+  font-size: 13px;
+  max-width: 96px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.slot .score {
+  font-size: 12px;
+  margin-top: -2px;
+}
+
+/* Crown for 1st */
+.crown {
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 26px;
+  background: var(--red);
+  clip-path: polygon(
+    0 100%,
+    0 50%,
+    25% 0,
+    50% 50%,
+    75% 0,
+    100% 50%,
+    100% 100%
+  );
+}
+
+/*  ─────────  Table  ───────── */
+table {
+  width: 92%;
+  margin: 34px auto 140px;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  font-size: 14px;
+}
+
+th {
+  background: #000;
+  color: #fff;
+  padding: 10px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+td {
+  background: #fff;
+  padding: 14px 10px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+td.name {
+  text-align: left;
+  font-weight: 700;
+}
+
+tr.me td {
+  background: var(--blue);
+  color: var(--off);
+}
+
+.progress {
+  font-size: 11px;
+  color: var(--red);
+  line-height: 16px;
+}
