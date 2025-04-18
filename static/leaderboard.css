@@ -1,61 +1,25 @@
-:root {
-  --primary: #2a3493;
-  --light: #FFF2C5;
-  --dark: #000;
-  --red: #d11b1b;
-  --offwhite: #f8f9fe;
-}
-
-/* Page layout */
-html, body {
+body {
   margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
   font-family: 'Negrita Pro', sans-serif;
-  background: url("drump-images/background.png") no-repeat center center fixed;
+  background: url("drump-images/background.png") no-repeat center center;
   background-size: cover;
-  overflow-x: hidden;
-  color: var(--dark);
 }
 
 .leaderboard-container {
-  max-width: 420px;
+  max-width: 480px;
   margin: 0 auto;
-  padding: 16px 12px 100px;
+  padding: 80px 16px 120px; /* padding-top ensures spacing under topbar */
   box-sizing: border-box;
-  min-height: 100vh;
 }
 
-/* ─────── THEME ─────── */
-:root {
-  --blue: #2a3493;
-  --off: #f8f9fe;
-  --dark: #000;
-  --red: #d11b1b;
-  --bg: #ffe242;
-  --medal-bg: #FFF2C5;
-  --border: #000;
-}
-
-/* ─────── PAGE ─────── */
-html, body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Negrita Pro', sans-serif;
-  background: var(--bg) radial-gradient(circle,#ffe242 0%,#ffde28 35%,#ffd608 65%);
-  color: var(--dark);
-  width: 100%;
-  overflow-x: hidden;
-}
-
-/* ─────── PODIUM ─────── */
+/* ──────── PODIUM ──────── */
 .podium {
   display: flex;
   justify-content: center;
-  align-items: end;
-  margin-top: 70px;
-  gap: 16px;
+  align-items: flex-end;
+  gap: 28px;
+  margin-top: 20px;
+  position: relative;
 }
 
 .slot {
@@ -68,149 +32,124 @@ html, body {
 .slot .circle {
   width: 96px;
   height: 96px;
-  border-radius: 50%;
   background: #FFF2C5;
-  border: 6px solid;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  font-weight: bold;
-}
-
-.slot.gold .circle   { border-color: #d11b1b; }
-.slot.silver .circle { border-color: var(--blue); }
-.slot.bronze .circle { border-color: #3790ff; }
-
-.slot .initial {
-  position: absolute;
-  bottom: -14px;
-  background: #d11b1b;
-  color: #fff;
-  font-size: 12px;
-  font-weight: bold;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  border: 6px solid;
+  font-size: 24px;
+  font-weight: 900;
+  color: #000;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
 }
 
-.slot.silver .initial { background: var(--blue); }
-.slot.bronze .initial { background: #3790ff; }
+.slot.gold .circle { border-color: #d11b1b; }
+.slot.silver .circle { border-color: #2a3493; }
+.slot.bronze .circle { border-color: #2a3493; }
 
-.slot .crown {
+.slot.gold { transform: translateY(-16px); }
+.slot.silver, .slot.bronze { transform: translateY(0); }
+
+.crown {
   position: absolute;
-  top: -26px;
+  top: -18px;
   left: 50%;
   transform: translateX(-50%);
-  width: 48px;
-  height: 28px;
-  background: #d11b1b;
-  clip-path: polygon(0 100%, 0 50%, 25% 0, 50% 50%, 75% 0, 100% 50%, 100% 100%);
+  width: 44px;
+  height: 30px;
+  background: url("drump-images/crown.png") no-repeat center;
+  background-size: contain;
   z-index: 2;
 }
 
-.slot .label {
-  margin-top: 36px;
-  background: var(--medal-bg);
-  border: 2px solid #000;
-  border-radius: 14px;
-  padding: 4px 14px;
-  font-size: 15px;
+.initial {
+  position: absolute;
+  bottom: -14px;
+  width: 40px;
+  height: 40px;
+  background: #d11b1b;
+  color: white;
   font-weight: bold;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  z-index: 3;
+  border: 2px solid #FFF2C5;
+}
+
+.slot.silver .initial,
+.slot.bronze .initial {
+  background: #2a3493;
+}
+
+/* NAME + SCORE WRAPPER */
+.label, .score {
+  background: #FFF2C5;
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 2px solid #000;
   box-shadow: 2px 2px 0 #000;
-  white-space: nowrap;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 28px;
+  text-align: center;
+  max-width: 120px;
+  word-wrap: break-word;
 }
 
-.slot .score {
-  font-size: 13px;
-  margin-top: 4px;
+.score {
   font-family: 'Commissioner', sans-serif;
-  color: #000;
+  font-size: 13px;
+  font-weight: normal;
+  margin-top: 4px;
 }
 
-/* First place higher */
-.slot.gold   { margin-bottom: 10px; }
-.slot.silver,
-.slot.bronze { margin-top: 20px; }
-
-
-/* Leaderboard Table */
+/* ──────── TABLE (Ranks 4+) ──────── */
 table {
   width: 100%;
-  margin-top: 28px;
-  border-collapse: separate;
-  border-spacing: 0 12px;
-  font-size: 14px;
-  font-family: 'Commissioner', sans-serif;
-}
-
-thead tr {
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
-  background: var(--light);
-  border: 2px solid #000;
-  border-radius: 14px;
-  box-shadow: 2px 2px 0 #000;
-  padding: 10px 12px;
+  border-spacing: 0 14px;
+  margin-top: 40px;
 }
 
 thead th {
-  font-family: 'Negrita Pro', sans-serif;
-  font-weight: bold;
-  text-align: left;
-  background: none;
-  border: none;
-  padding: 0;
-}
-
-thead th:nth-child(1) {
-  width: 15%;
-  text-align: center;
-}
-
-thead th:nth-child(2) {
-  width: 50%;
-}
-
-thead th:nth-child(3) {
-  width: 35%;
-  text-align: right;
-}
-
-/* Rows */
-tbody tr {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 1px 1px 0 #000;
-  padding: 14px 10px;
+  background: #FFF2C5;
+  color: #000;
   font-size: 14px;
-  gap: 6px;
-}
-
-tbody td:nth-child(1) {
-  width: 15%;
-  text-align: center;
   font-weight: bold;
+  padding: 12px 10px;
+  border-radius: 12px;
+  text-align: left;
 }
 
-tbody td:nth-child(2) {
-  width: 50%;
-  font-weight: 600;
+thead th:nth-child(1) { width: 20%; text-align: left; }
+thead th:nth-child(2) { width: 50%; }
+thead th:nth-child(3) { width: 30%; text-align: center; }
+
+tbody tr {
+  background: #FFF2C5;
+  border-radius: 14px;
+  box-shadow: 2px 2px 0 #000;
+  font-size: 14px;
+  font-weight: bold;
+  color: #000;
+}
+
+tbody tr.me {
+  background: #2a3493;
+  color: #f8f9fe;
+}
+
+tbody td {
+  padding: 12px 10px;
+  text-align: left;
+  font-family: 'Negrita Pro', sans-serif;
 }
 
 tbody td:nth-child(3) {
-  width: 35%;
-  text-align: right;
-}
-
-tr.me {
-  background: var(--primary) !important;
-  color: var(--offwhite) !important;
+  text-align: center;
+  font-family: 'Commissioner', sans-serif;
+  font-weight: normal;
 }
