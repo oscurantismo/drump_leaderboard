@@ -82,6 +82,22 @@ html, body {
   transform: translateY(6px);
 }
 
+@keyframes popin {
+  from {
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.podium .slot {
+  animation: popin 0.5s ease-out both;
+}
+
+
 /* Crown */
 .crown {
   position: absolute;
@@ -122,20 +138,28 @@ html, body {
 
 /* Unified badge: name + score */
 .info-badge {
-  background: #FFF2C5;
-  padding: 8px 12px;
+  background: #FFEDAC;                           /* ✅ updated background */
+  padding: 10px 14px;
   border-radius: 12px;
   border: 2px solid #000;
+  box-shadow: 2px 2px 0 #000;                   /* ✅ added shadow */
   margin-top: 32px;
   max-width: 140px;
   text-align: center;
+  transition: transform 0.25s ease;
+}
+
+.info-badge .name,
+.info-badge .score {
+  display: block;                                /* ✅ forces 2-line layout */
+  line-height: 1.4;
 }
 
 .info-badge .name {
   font-family: 'Negrita Pro', sans-serif;
   font-size: 14px;
   font-weight: bold;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   word-wrap: break-word;
 }
 
@@ -151,9 +175,10 @@ thead {
   border-radius: 14px;
   overflow: hidden;
   border: 2px solid #000;
-  background: #FFEDAC; /* ✅ updated background */
+  background: #FFEDAC;
   width: 100%;
-  margin-bottom: 20px;  /* ✅ spacing between header and table rows */
+  margin-bottom: 20px;
+  box-shadow: 2px 2px 0 #000;   /* ✅ same shadow as initials */
 }
 
 thead tr {
@@ -233,3 +258,19 @@ html, body {
   overflow-y: scroll;
   overscroll-behavior: contain;
 }
+
+@keyframes fadeSlideIn {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.leaderboard-container {
+  animation: fadeSlideIn 0.5s ease-out;
+}
+
