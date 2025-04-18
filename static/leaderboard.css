@@ -61,7 +61,7 @@ html, body {
 
 .slot.gold {
   order: 2;
-  transform: translateY(-14px);
+  transform: translateY(-44px);
 }
 .slot.silver {
   order: 1;
