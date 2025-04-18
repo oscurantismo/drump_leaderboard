@@ -15,7 +15,7 @@ from routes.leaderboard import leaderboard_routes
 from routes.referral import referral_routes
 from routes.admin import admin_routes  # ✅ import only
 from routes.rewards import rewards_bp
-from routes.reward_logs import reward_logs_bp
+from routes.debug_tools.reward_logs import reward_logs_bp
 from routes.tasks import tasks_routes
 
 # ✅ NEW: Import debug tools module (modularised logging routes)
