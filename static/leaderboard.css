@@ -1,36 +1,36 @@
-/*  ─────────  Theme tokens  ───────── */
+/* leaderboard.css */
+/* ───────── Theme Tokens ───────── */
 :root {
-  --blue: #2a3493;
-  --off: #f8f9fe;
-  --dark: #000;
-  --red: #d11b1b;
+  --primary: #2a3493;
+  --offwhite: #f8f9fe;
+  --deepred: #8e0004;
+  --gold: #d11b1b;
   --bg: #ffe242;
+  --cream: #FFF2C5;
+  --black: #000;
 }
 
-/*  ─────────  Layout  ───────── */
-html,
-body {
+/* ───────── Layout & Background ───────── */
+html, body {
   margin: 0;
+  padding: 0;
   width: 100%;
   height: 100%;
+  font-family: 'Negrita Pro', sans-serif;
+  background: url("background.png") no-repeat center center fixed;
+  background-size: cover;
   overflow-x: hidden;
-  font-family: 'Commissioner', sans-serif;
-  background: var(--bg);
-  background: var(--bg)
-    radial-gradient(circle, #ffe242 0%, #ffde28 35%, #ffd608 65%);
-  color: var(--dark);
+  color: var(--black);
 }
 
-h1 {
-  display: none;
-}
-
-/* Top‑3 section */
+/* ───────── Top 3 Podium ───────── */
 .podium {
   display: flex;
   justify-content: center;
-  gap: 22px;
-  margin-top: 40px;
+  align-items: flex-end;
+  gap: 24px;
+  margin-top: 80px; /* space below topbar */
+  position: relative;
 }
 
 .slot {
@@ -38,44 +38,35 @@ h1 {
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  position: relative;
+  margin-top: 20px; /* base margin for all */
 }
 
-.slot .ring {
-  width: 92px;
-  height: 92px;
+.slot.gold {
+  margin-top: 0; /* 1st place is higher */
+  z-index: 2;
+}
+
+.ring {
+  width: 100px;
+  height: 100px;
+  background: var(--cream);
   border-radius: 50%;
-  background: #fff;
+  border: 6px solid var(--gold);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
-  font-size: 28px;
-  border: 6px solid var(--blue);
+  font-size: 26px;
+  position: relative;
 }
 
-.slot.gold .ring {
-  border-color: var(--red);
+.slot.silver .ring,
+.slot.bronze .ring {
+  border-color: #2a3493;
 }
 
-.slot .badge {
-  background: #fff;
-  border: 2px solid #000;
-  border-radius: 10px;
-  padding: 4px 10px;
-  font-weight: 600;
-  font-size: 13px;
-  max-width: 96px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.slot .score {
-  font-size: 12px;
-  margin-top: -2px;
-}
-
-/* Crown for 1st */
+/* Crown image */
 .crown {
   position: absolute;
   top: -26px;
@@ -83,22 +74,66 @@ h1 {
   transform: translateX(-50%);
   width: 44px;
   height: 26px;
-  background: var(--red);
-  clip-path: polygon(
-    0 100%,
-    0 50%,
-    25% 0,
-    50% 50%,
-    75% 0,
-    100% 50%,
-    100% 100%
-  );
+  background: url("crown.png") no-repeat center center;
+  background-size: contain;
 }
 
-/*  ─────────  Table  ───────── */
+/* Lower badge with initials */
+.initials {
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 34px;
+  height: 34px;
+  background: var(--red);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  z-index: 3;
+}
+
+/* ───────── Name & Punch Container ───────── */
+.info-badge {
+  background: var(--cream);
+  border: 2px solid #000;
+  padding: 6px 12px;
+  border-radius: 10px;
+  box-shadow: 3px 3px 0 #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Negrita Pro', sans-serif;
+  margin-top: 12px;
+  min-width: 120px;
+}
+
+.info-badge .name {
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 2px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.info-badge .score {
+  font-size: 13px;
+  font-family: 'Commissioner', sans-serif;
+  color: var(--black);
+  text-align: center;
+}
+
+/* ───────── Leaderboard Table ───────── */
 table {
   width: 92%;
-  margin: 34px auto 140px;
+  margin: 40px auto 120px;
   border-collapse: separate;
   border-spacing: 0 12px;
   font-size: 14px;
@@ -113,24 +148,36 @@ th {
 }
 
 td {
-  background: #fff;
+  background: var(--cream);
   padding: 14px 10px;
   border-radius: 12px;
   text-align: center;
+  font-family: 'Negrita Pro', sans-serif;
+  box-shadow: 3px 3px 0 #000;
 }
 
 td.name {
   text-align: left;
   font-weight: 700;
+  font-size: 14px;
 }
 
 tr.me td {
-  background: var(--blue);
-  color: var(--off);
+  background: var(--primary);
+  color: var(--offwhite);
+  box-shadow: none;
 }
 
 .progress {
   font-size: 11px;
-  color: var(--red);
+  color: var(--deepred);
   line-height: 16px;
+  font-family: 'Commissioner', sans-serif;
+}
+
+/* Responsive spacing under leaderboard */
+@media screen and (max-height: 740px) {
+  .podium {
+    margin-top: 60px;
+  }
 }
