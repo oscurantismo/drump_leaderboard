@@ -60,11 +60,14 @@ def list_tasks():
     ])
 
 # === POST /tasks/complete ==================================================
+# ... (imports & TASK_DEFINITIONS unchanged)
+from routes.rewards import log_reward_event    # NEW
+
 @tasks_routes.route("/tasks/complete", methods=["POST"])
 def complete_task():
     data = request.get_json(force=True)
-    user_id = str(data.get("user_id", "")).strip()
-    task_id = str(data.get("task_id", "")).strip()
+    user_id  = str(data.get("user_id", "")).strip()
+    task_id  = str(data.get("task_id", "")).strip()
 
     if not user_id or task_id not in TASK_DEFINITIONS:
         return jsonify({"error": "invalid user_id or task_id"}), 400
@@ -77,12 +80,25 @@ def complete_task():
     if task_id in user["tasks_done"]:
         return jsonify({"status": "already_completed"})
 
-    # Mark as done & award punches
-    user["tasks_done"].append(task_id)
+    # --- apply reward ---------------------------------------------------- #
     reward = TASK_DEFINITIONS[task_id]["reward"]
-    user["score"] = user.get("score", 0) + reward
+    prev   = user.get("score", 0)
+    new    = prev + reward
 
+    user["tasks_done"].append(task_id)
+    user["score"] = new
     save_scores(scores)
 
-    log_event(f"🎁 Task '{task_id}' completed by {user.get('username')} ({user_id}) – +{reward} punches")
-    return jsonify({"status": "ok", "new_score": user["score"], "reward": reward})
+    # --- log to central ledger ------------------------------------------ #
+    log_reward_event(
+        user_id=user_id,
+        username=user.get("username", "Anonymous"),
+        reward_type="task_complete",
+        source_id=task_id,
+        change=reward,
+        prev_score=prev,
+        new_score=new,
+        meta={"task_title": TASK_DEFINITIONS[task_id]["title"]},
+    )
+
+    return jsonify({"status": "ok", "new_score": new, "reward": reward})
