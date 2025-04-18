@@ -217,7 +217,7 @@ def leaderboard_page():
         else:
             progress_text = "Punch more to enter the top-25!"
 
-        all_rewards = load_rewards()
+        all_rewards = list_rewards()
         user_rewards = [r["event"] for r in all_rewards if r["user_id"] == current_user_id]
 
         reward_tiers = [
