@@ -1,22 +1,43 @@
-body {
+* {
+  box-sizing: border-box;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+
+html, body {
   margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
   font-family: 'Negrita Pro', sans-serif;
   background: url("background.png") no-repeat center center;
   background-size: cover;
 }
 
 .leaderboard-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 80px 16px 120px;
+  box-sizing: border-box;
   max-width: 480px;
   margin: 0 auto;
-  padding: 80px 16px 120px; /* top space for topbar */
-  box-sizing: border-box;
 }
+
 
 /* ──────── PODIUM ──────── */
 .podium {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   margin: 60px 24px 40px;
 }
@@ -124,9 +145,12 @@ body {
 /* ──────── TABLE (Ranks 4+) ──────── */
 table {
   width: 100%;
+  table-layout: fixed;
+  word-wrap: break-word;
   border-spacing: 0 14px;
   margin-top: 36px;
 }
+
 
 thead th {
   background: #FFF2C5;
