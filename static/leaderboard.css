@@ -155,7 +155,6 @@ html, body {
 .info-badge .name {
   font-family: 'Negrita Pro', sans-serif;
   font-size: 14px;
-  font-weight: bold;
   margin-bottom: 6px;
   word-wrap: break-word;
 }
@@ -198,7 +197,6 @@ thead th {
   padding: 16px 10px;
   text-align: left;
   font-size: 16px;
-  font-weight: bold;
   border-right: none;
 }
 
@@ -221,7 +219,6 @@ tbody tr {
   border-radius: 14px;
   margin-bottom: 14px;
   font-size: 14px;
-  font-weight: bold;
   color: #000;
   overflow: hidden;
 }
