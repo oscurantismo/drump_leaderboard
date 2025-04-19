@@ -23,13 +23,20 @@ html, body {
   will-change: scroll-position;
 }
 
-/* Leaderboard container layout */
 .leaderboard-container {
-  position: absolute;
+  position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
+  background: url("background.png") center top no-repeat;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.leaderboard-content {
+  position: absolute;
+  top: 100px;
+  left: 0; right: 0; bottom: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
   padding: 80px 16px 120px;
   box-sizing: border-box;
   max-width: 480px;
