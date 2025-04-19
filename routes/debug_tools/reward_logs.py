@@ -4,7 +4,7 @@ from flask import Blueprint, request, render_template_string
 from routes.rewards import ensure_rewards_file  # ✅ (optional)
 
 reward_logs_bp = Blueprint("reward_logs", __name__)
-REWARDS_FILE = "rewards.json"
+REWARDS_FILE = "/app/data/rewards.json"
 
 @reward_logs_bp.route("/reward-logs")
 def reward_logs_page():
