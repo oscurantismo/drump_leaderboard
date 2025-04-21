@@ -42,3 +42,36 @@ def leaderboard_page():
     except Exception as e:
         log_event(f"❌ Leaderboard crash: {e}")
         return "<h2>🚧 Leaderboard under maintenance</h2>", 500
+
+
+@leaderboard_routes.route("/leaderboard")
+def get_leaderboard_data():
+    try:
+        scores = load_scores()
+        user_id = request.args.get("user_id", "")
+        filtered = [s for s in scores if s.get("score", 0) > 0]
+        sorted_scores = sorted(filtered, key=lambda x: x["score"], reverse=True)
+
+        user_index = next((i for i, s in enumerate(sorted_scores) if s.get("user_id") == user_id), None)
+        user_rank = user_index + 1 if user_index is not None else None
+        user_score = sorted_scores[user_index]["score"] if user_index is not None else 0
+
+        next_score = None
+        punch_gap = 0
+
+        if user_index is not None and user_index > 0:
+            next_score = sorted_scores[user_index - 1]["score"]
+            punch_gap = max(0, next_score - user_score)
+
+        response = {
+            "user_id": user_id,
+            "rank": user_rank,
+            "score": user_score,
+            "punches_to_next_rank": punch_gap
+        }
+
+        return jsonify(response)
+
+    except Exception as e:
+        log_event(f"❌ Error in /leaderboard JSON: {e}")
+        return jsonify({"error": "Leaderboard fetch failed"}), 500
