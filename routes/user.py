@@ -164,3 +164,46 @@ def profile():
         "already_claimed_referral": bool(entry.get("referral_reward_issued", False)),
         "referrals": entry.get("referrals", [])
     })
+
+@user_routes.route("/notifications/subscribe", methods=["POST"])
+def subscribe_notifications():
+    data = request.get_json(force=True)
+    user_id = str(data.get("user_id", "")).strip()
+    scores = load_scores()
+    user = next((e for e in scores if e["user_id"] == user_id), None)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    user["subscribed_notifications"] = True
+    save_scores(scores)
+    log_event(f"🔔 Subscribed to notifications: {user.get('username')} ({user_id})")
+    return jsonify({"status": "subscribed"})
+
+@user_routes.route("/notifications/unsubscribe", methods=["POST"])
+def unsubscribe_notifications():
+    data = request.get_json(force=True)
+    user_id = str(data.get("user_id", "")).strip()
+    scores = load_scores()
+    user = next((e for e in scores if e["user_id"] == user_id), None)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    user["subscribed_notifications"] = False
+    save_scores(scores)
+    log_event(f"🔕 Unsubscribed from notifications: {user.get('username')} ({user_id})")
+    return jsonify({"status": "unsubscribed"})
+
+@user_routes.route("/notifications/status", methods=["GET"])
+def check_notification_status():
+    user_id = request.args.get("user_id", "").strip()
+    scores = load_scores()
+    user = next((e for e in scores if e["user_id"] == user_id), None)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({
+        "subscribed": bool(user.get("subscribed_notifications", False))
+    })
