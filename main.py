@@ -5,7 +5,7 @@ import sys
 import os
 from utils.logging import log_event
 from utils.storage import backup_scores
-from routes.debug_tools.subscriptions import auto_backup_subscriptions
+from routes.debug_tools import auto_backup_subscriptions
 from flask_apscheduler import APScheduler
 
 # ✅ Ensure logs print immediately to Railway logs panel
