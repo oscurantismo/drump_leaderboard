@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from utils.storage import load_scores, save_scores, backup_scores
 from utils.logging import log_event
 import datetime
-from debug_tools.subscriptions import load_subscriptions, save_subscriptions
+from routes.debug_tools.subscriptions import load_subscriptions, save_subscriptions
 
 user_routes = Blueprint("user_routes", __name__)
 
