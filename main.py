@@ -17,6 +17,7 @@ from routes.admin import admin_routes  # ✅ import only
 from routes.rewards import rewards_bp
 from routes.debug_tools.reward_logs import reward_logs_bp
 from routes.tasks import tasks_routes
+from routes.notifications import notifications_routes
 
 # ✅ NEW: Import debug tools module (modularised logging routes)
 from routes.debug_tools import register_logging_routes
@@ -54,6 +55,7 @@ app.register_blueprint(admin_routes)
 app.register_blueprint(rewards_bp)
 app.register_blueprint(reward_logs_bp)
 app.register_blueprint(tasks_routes)
+app.register_blueprint(notifications_routes)
 
 register_logging_routes(app)  # ✅ Replaces app.register_blueprint(log_routes)
 
