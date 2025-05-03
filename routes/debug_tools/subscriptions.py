@@ -1,11 +1,35 @@
 from flask import Blueprint, request, jsonify, send_file, render_template_string
 import json, os, datetime
 from werkzeug.utils import secure_filename
+from utils.logging import log_event
+from apscheduler.schedulers.background import BackgroundScheduler
 
 subscription_routes = Blueprint("subscription_routes", __name__)
 SUB_PATH = "subscriptions.json"
 BACKUP_DIR = "data/subscription_backups"
 os.makedirs(BACKUP_DIR, exist_ok=True)
+
+
+def auto_backup_subscriptions():
+    if not os.path.exists(SUB_PATH):
+        print("⚠️ subscriptions.json not found, skipping backup.")
+        return
+
+    try:
+        timestamp = datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        backup_path = os.path.join(BACKUP_DIR, f"auto_daily_{timestamp}.json")
+
+        with open(SUB_PATH, "r") as f:
+            content = f.read()
+            json.loads(content)  # Validate
+            with open(backup_path, "w") as bkp:
+                bkp.write(content)
+
+        log_event(f"✅ subscriptions.json auto-backed up as {backup_path}")
+
+    except Exception as e:
+        log_event(f"❌ Failed to auto-backup subscriptions.json: {e}")
+
 
 def load_subscriptions():
     if not os.path.exists(SUB_PATH):
@@ -119,6 +143,8 @@ def download_subscription_backup():
         return "❌ subscriptions.json not found.", 404
     return send_file(SUB_PATH, as_attachment=True)
 
+from utils.logging import log_event  # ✅ Add this at the top if not already
+
 @subscription_routes.route("/subscription-backup/upload", methods=["POST"])
 def upload_subscription_backup():
     file = request.files.get("file")
@@ -139,15 +165,19 @@ def upload_subscription_backup():
             with open(SUB_PATH, "r") as old:
                 with open(backup_path, "w") as bkp:
                     bkp.write(old.read())
+            log_event(f"📦 Backup created before manual subscription upload: {backup_path}")
 
         # Save new version
         with open(SUB_PATH, "w") as f:
             f.write(content)
 
+        log_event("🆕 subscriptions.json manually uploaded and saved")
         return jsonify({"ok": True})
 
     except Exception as e:
+        log_event(f"❌ Subscription upload failed: {e}")
         return jsonify({"error": f"Invalid JSON or upload error: {e}"}), 400
+
 
 @subscription_routes.route("/subscription-backup/restore", methods=["POST"])
 def restore_backup():
@@ -176,7 +206,10 @@ def restore_backup():
         with open(SUB_PATH, "w") as f:
             json.dump(parsed, f, indent=2)
 
+        log_event(f"♻️ subscriptions.json restored from backup: {filename}")
         return jsonify({"ok": True})
     except Exception as e:
+        log_event(f"❌ Failed to restore subscription backup '{filename}': {e}")
         return jsonify({"error": f"Failed to restore: {e}"}), 500
+
 
