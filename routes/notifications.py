@@ -31,20 +31,29 @@ def get_subscription_status():
 def subscribe():
     data = request.get_json()
     user_id = str(data.get("user_id"))
-    username = data.get("username", "Anonymous")
+    username = data.get("username", "unknown")
+
     if not user_id:
         return jsonify({"error": "Missing user_id"}), 400
 
-    subs = load_subs()
+    try:
+        with open("subscriptions.json", "r") as f:
+            subs = json.load(f)
+    except:
+        subs = {}
+
     subs[user_id] = {
         **subs.get(user_id, {}),
         "subscribed": True,
         "username": username,
-        "subscribed_at": datetime.utcnow().isoformat(),
-        "opted_out": False
+        "subscribed_at": datetime.datetime.utcnow().isoformat()
     }
-    save_subs(subs)
+
+    with open("subscriptions.json", "w") as f:
+        json.dump(subs, f, indent=2)
+
     return jsonify({"ok": True})
+
 
 @notifications_routes.route("/unsubscribe", methods=["POST"])
 def unsubscribe():
