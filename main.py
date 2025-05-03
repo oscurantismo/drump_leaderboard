@@ -38,7 +38,7 @@ from routes.debug_tools.reward_logs import reward_logs_bp
 from routes.tasks import tasks_routes
 from routes.notifications import notifications_routes
 from routes.debug_tools.subscriptions import subscription_routes
-from routes.debug_tools.subscriptions import register_logging_routes
+from routes.debug_tools import register_logging_routes
 
 # ✅ Log startup
 log_event("🚀 Initializing Flask app")
