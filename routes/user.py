@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from utils.storage import load_scores, save_scores, backup_scores
 from utils.logging import log_event
 import datetime
+from subscriptions import load_subscriptions, save_subscriptions
 
 user_routes = Blueprint("user_routes", __name__)
 
@@ -169,31 +170,53 @@ def profile():
 def subscribe_notifications():
     data = request.get_json(force=True)
     user_id = str(data.get("user_id", "")).strip()
+    username = data.get("username", "Anonymous")
+
     scores = load_scores()
     user = next((e for e in scores if e["user_id"] == user_id), None)
-
     if not user:
         return jsonify({"error": "User not found"}), 404
 
     user["subscribed_notifications"] = True
     save_scores(scores)
-    log_event(f"🔔 Subscribed to notifications: {user.get('username')} ({user_id})")
+
+    subs = load_subscriptions()
+    subs[user_id] = {
+        "username": username,
+        "subscribed": True,
+        "subscribed_at": datetime.datetime.now().isoformat(),
+        "opted_out": False
+    }
+    save_subscriptions(subs)
+
+    log_event(f"🔔 Subscribed to notifications: {username} ({user_id})")
     return jsonify({"status": "subscribed"})
+
 
 @user_routes.route("/notifications/unsubscribe", methods=["POST"])
 def unsubscribe_notifications():
     data = request.get_json(force=True)
     user_id = str(data.get("user_id", "")).strip()
+
     scores = load_scores()
     user = next((e for e in scores if e["user_id"] == user_id), None)
-
     if not user:
         return jsonify({"error": "User not found"}), 404
 
     user["subscribed_notifications"] = False
     save_scores(scores)
+
+    subs = load_subscriptions()
+    subs[user_id] = {
+        **subs.get(user_id, {}),
+        "subscribed": False,
+        "opted_out": True
+    }
+    save_subscriptions(subs)
+
     log_event(f"🔕 Unsubscribed from notifications: {user.get('username')} ({user_id})")
     return jsonify({"status": "unsubscribed"})
+
 
 @user_routes.route("/notifications/status", methods=["GET"])
 def check_notification_status():
