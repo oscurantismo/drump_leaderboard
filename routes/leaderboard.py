@@ -43,6 +43,17 @@ def leaderboard_page():
         log_event(f"❌ Leaderboard crash: {e}")
         return "<h2>🚧 Leaderboard under maintenance</h2>", 500
 
+@leaderboard_routes.route("/leaderboard-list")
+def get_leaderboard_list():
+    try:
+        scores = load_scores()
+        filtered = [s for s in scores if s.get("score", 0) > 0]
+        sorted_scores = sorted(filtered, key=lambda x: x["score"], reverse=True)
+        return jsonify(sorted_scores)
+    except Exception as e:
+        log_event(f"❌ Error in /leaderboard-list: {e}")
+        return jsonify({"error": "Leaderboard list fetch failed"}), 500
+
 
 @leaderboard_routes.route("/leaderboard")
 def get_leaderboard_data():
