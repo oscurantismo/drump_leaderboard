@@ -1,20 +1,20 @@
 # notifications.py
 import json
-import datetime
 from flask import Blueprint, request, jsonify
+from datetime import datetime
 
 notifications_routes = Blueprint("notifications_routes", __name__)
-SUBSCRIPTION_FILE = "subscriptions.json"
+SUBSCRIPTION_PATH = "subscriptions.json"
 
-def load_subscriptions():
+def load_subs():
     try:
-        with open(SUBSCRIPTION_FILE, "r") as f:
+        with open(SUBSCRIPTION_PATH, "r") as f:
             return json.load(f)
     except:
         return {}
 
-def save_subscriptions(data):
-    with open(SUBSCRIPTION_FILE, "w") as f:
+def save_subs(data):
+    with open(SUBSCRIPTION_PATH, "w") as f:
         json.dump(data, f, indent=2)
 
 @notifications_routes.route("/status", methods=["GET"])
@@ -23,7 +23,7 @@ def get_subscription_status():
     if not user_id:
         return jsonify({"error": "Missing user_id"}), 400
 
-    subs = load_subscriptions()
+    subs = load_subs()
     subscribed = subs.get(user_id, {}).get("subscribed", False)
     return jsonify({"subscribed": subscribed})
 
@@ -31,36 +31,35 @@ def get_subscription_status():
 def subscribe():
     data = request.get_json()
     user_id = str(data.get("user_id"))
-    username = data.get("username", "unknown")
-
+    username = data.get("username", "Anonymous")
     if not user_id:
         return jsonify({"error": "Missing user_id"}), 400
 
-    subs = load_subscriptions()
-
+    subs = load_subs()
     subs[user_id] = {
         **subs.get(user_id, {}),
         "subscribed": True,
         "username": username,
-        "subscribed_at": datetime.datetime.utcnow().isoformat(),
+        "subscribed_at": datetime.utcnow().isoformat(),
         "opted_out": False
     }
-
-    save_subscriptions(subs)
+    save_subs(subs)
     return jsonify({"ok": True})
 
 @notifications_routes.route("/unsubscribe", methods=["POST"])
 def unsubscribe():
     data = request.get_json()
     user_id = str(data.get("user_id"))
+    username = data.get("username", "Anonymous")
     if not user_id:
         return jsonify({"error": "Missing user_id"}), 400
 
-    subs = load_subscriptions()
-
-    if user_id in subs:
-        subs[user_id]["subscribed"] = False
-        subs[user_id]["opted_out"] = True
-
-    save_subscriptions(subs)
+    subs = load_subs()
+    subs[user_id] = {
+        **subs.get(user_id, {}),
+        "subscribed": False,
+        "username": username,
+        "opted_out": True
+    }
+    save_subs(subs)
     return jsonify({"ok": True})
