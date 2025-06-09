@@ -33,12 +33,12 @@ html, body {
 
 .leaderboard-content {
   position: absolute;
-  top: 80px;
+  top: 20px;
   bottom: 90px;
   left: 0; right: 0; bottom: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 80px 16px 120px;
+  padding: 60px 16px 120px;
   box-sizing: border-box;
   max-width: 480px;
   margin: 0 auto;
@@ -53,7 +53,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  margin: 60px auto 40px;
+  margin: 20px auto 20px;
   gap: 16px;
   max-width: 360px;
 }
