@@ -89,7 +89,7 @@ html, body {
   transform: none;
 }
 .ring-wrapper.gold {
-  transform: translateY(-14px);
+  transform: translateY(-34px);
 }
 
 .ring-wrapper.silver {
@@ -133,9 +133,17 @@ html, body {
 .slot.silver .ring { border-color: #5565FC; }
 .slot.bronze .ring { border-color: #293391; }
 
+.slot.gold .ring {
+  width: 80px;
+  height: 80px;
+  font-size: 24px;
+  border-width: 5px;
+}
+
+
 .crown {
   position: absolute;
-  top: -2px;
+  top: -12px;
   left: 50%;
   transform: translateX(-50%);
   width: 9vw;
