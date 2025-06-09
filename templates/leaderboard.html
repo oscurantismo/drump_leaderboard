@@ -14,23 +14,13 @@
     <div class="podium">
 
       {% if top_second %}
-      <div class="slot silver">
-        <div class="ring">
-          2nd
-          <div class="initials">{{ top_second.display_name[:1] }}</div>
-        </div>
-        <div class="info-badge">
-          <div class="name">{{ top_second.display_name }}</div>
-          <div class="score">🥊 {{ top_second.score }} Punches</div>
-        </div>
-      </div>
-      {% endif %}
-
       <div class="slot gold">
-        <div class="crown"></div>
-        <div class="ring">
-          1st
-          <div class="initials">{{ top_first.display_name[:1] }}</div>
+        <div class="ring-wrapper">
+          <div class="crown"></div>
+          <div class="ring">
+            1st
+            <div class="initials">{{ top_first.display_name[:1] }}</div>
+          </div>
         </div>
         <div class="info-badge">
           <div class="name">{{ top_first.display_name }}</div>
@@ -38,11 +28,28 @@
         </div>
       </div>
 
+      {% endif %}
+
+      <div class="slot silver">
+        <div class="ring-wrapper">
+          <div class="ring">
+            1st
+            <div class="initials">{{ top_second.display_name[:1] }}</div>
+          </div>
+        </div>
+        <div class="info-badge">
+          <div class="name">{{ top_second.display_name }}</div>
+          <div class="score">🥊 {{ top_second.score }} Punches</div>
+        </div>
+      </div>
+
       {% if top_third %}
       <div class="slot bronze">
-        <div class="ring">
-          3rd
-          <div class="initials">{{ top_third.display_name[:1] }}</div>
+        <div class="ring-wrapper">
+          <div class="ring">
+            1st
+            <div class="initials">{{ top_third.display_name[:1] }}</div>
+          </div>
         </div>
         <div class="info-badge">
           <div class="name">{{ top_third.display_name }}</div>
