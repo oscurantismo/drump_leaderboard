@@ -51,8 +51,8 @@ html, body {
 /* ──────── PODIUM ──────── */
 .podium {
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-end;
+  justify-content: center;
+  align-items: start;
   margin: 20px auto 20px;
   gap: 16px;
   max-width: 360px;
