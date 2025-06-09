@@ -58,7 +58,7 @@ html, body {
 .podium {
   display: flex;
   justify-content: center;
-  align-items: start;
+  align-items: flex-start;
   margin: 20px auto 20px;
   gap: 16px;
   max-width: 360px;
@@ -242,7 +242,6 @@ tbody td:nth-child(2) { flex: 2; }
 tbody td:nth-child(3) {
   flex: 1.2;
   text-align: center;
-  font-family: 'Commissioner', sans-serif;
   font-weight: normal;
 }
 
