@@ -101,6 +101,15 @@ html, body {
   z-index: 1;
 }
 
+.ring-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 160px; /* adjust for how high the 1st place crown floats */
+  position: relative;
+}
+
 .slot.gold .ring { border-color: #F6020F; }
 .slot.silver .ring { border-color: #5565FC; }
 .slot.bronze .ring { border-color: #293391; }
