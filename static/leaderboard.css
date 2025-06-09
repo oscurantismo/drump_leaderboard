@@ -136,6 +136,8 @@ html, body {
   z-index: 3;
 }
 
+.slot.silver .initials { color: #F6020F; }
+
 /* Unified badge: name + score */
 .info-badge {
   background: #FFEDAC;
@@ -163,7 +165,6 @@ html, body {
 }
 
 .info-badge .score {
-  font-family: 'Commissioner', sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #000;
