@@ -1,3 +1,12 @@
+@font-face {
+  font-family: 'Negrita Pro';
+  src: url('font/NegritaPro.woff2') format('woff2'),
+       url('font/NegritaPro.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 * {
   box-sizing: border-box;
   scrollbar-width: thin;
@@ -14,9 +23,8 @@ html, body {
   height: 100%;
   overflow: hidden;
   font-family: 'Negrita Pro', sans-serif;
-  background: url("background.png") center top no-repeat;
+  background: url("background.png") center;
   background-size: cover;
-  background-attachment: fixed;
   background-repeat: no-repeat;
   backface-visibility: hidden;
   -webkit-transform: translateZ(0);
@@ -26,8 +34,6 @@ html, body {
 .leaderboard-container {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: url("background.png") center top no-repeat;
-  background-size: cover;
   overflow: hidden;
 }
 
@@ -69,7 +75,7 @@ html, body {
 
 .slot.gold {
   order: 2;
-  transform: translateY(-44px);
+  transform: translateY(-74px);
 }
 .slot.silver {
   order: 1;
@@ -95,8 +101,9 @@ html, body {
   z-index: 1;
 }
 
-.slot.gold .ring { border-color: #d11b1b; }
-.slot.silver .ring, .slot.bronze .ring { border-color: #2a3493; }
+.slot.gold .ring { border-color: #F6020F; }
+.slot.silver .ring { border-color: #5565FC; }
+.slot.bronze .ring { border-color: #293391; }
 
 .crown {
   position: absolute;
@@ -115,7 +122,7 @@ html, body {
   top: 100%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #d11b1b;
+  background: #FFEDAC;
   color: white;
   font-size: 13px;
   font-weight: 700;
@@ -127,10 +134,6 @@ html, body {
   justify-content: center;
   box-shadow: 2px 2px 0 #000;
   z-index: 3;
-}
-.slot.silver .initials,
-.slot.bronze .initials {
-  background: #2a3493;
 }
 
 /* Unified badge: name + score */
