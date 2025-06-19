@@ -19,7 +19,7 @@ tasks_routes = Blueprint("tasks_routes", __name__)
 # --- master task list (must match earn_tab.js) -----------------------------
 TASK_DEFINITIONS = {
     "follow_x":        {"title": "Follow us on X",                   "reward": 40},
-    "like_pinned":     {"title": "Like our pinned tweet",            "reward": 25},
+    "like_pinned_v2": {"title": "Like our pinned tweet", "reward": 25},
     "retweet_pinned":  {"title": "Re‑post pinned tweet",             "reward": 35},
     "quote_tweet":     {"title": "Quote‑tweet with #Punch2Earn",     "reward": 60},
     "join_channel":    {"title": "Join our Telegram channel",        "reward": 25},
