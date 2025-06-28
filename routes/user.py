@@ -95,7 +95,7 @@ def submit():
                 if old_score < 20 <= score and referrer_id and not entry.get("referral_reward_issued"):
                     referrer = next((e for e in scores if e["user_id"] == referrer_id), None)
                     if referrer:
-                        reward = 1000
+                        reward = 10000
                         referrer_old = referrer["score"]
                         referred_old = entry["score"]
 
