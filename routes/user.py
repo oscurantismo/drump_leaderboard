@@ -39,7 +39,6 @@ def register():
     scores.append(new_user)
     save_scores(scores)
     backup_scores()
-    log_event(f"📝 Registered new user: {username} (ID: {user_id})")
     return jsonify({"status": "registered"})
 
 
@@ -70,7 +69,6 @@ def submit():
     if len(recent_taps) > 30:
         log_event(f"🚨 High-frequency activity: {username} (ID: {user_id}) – {len(recent_taps)} taps in 10s")
 
-    log_event(f"🔄 Score submitted: {username} (ID: {user_id}) – {score}")
 
     scores = load_scores()
     updated = False
