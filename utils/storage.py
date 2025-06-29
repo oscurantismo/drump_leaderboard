@@ -79,18 +79,16 @@ def save_scores(scores):
 
     os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)
 
-    temp_path = SCORES_FILE + ".tmp"
     try:
-        with open(temp_path, "w") as f:
-            fcntl.flock(f, fcntl.LOCK_EX)
+        # Write directly and atomically (best-effort)
+        with open(SCORES_FILE, "w") as f:
             json.dump(scores, f, indent=2)
             f.flush()
             os.fsync(f.fileno())
-            fcntl.flock(f, fcntl.LOCK_UN)
-        os.replace(temp_path, SCORES_FILE)
-        time.sleep(0.1)
+        log_event("✅ Successfully saved scores.json")
     except Exception as e:
-        log_event(f"❌ Failed to save scores.json safely: {e}")
+        log_event(f"❌ Failed to save scores.json: {e}")
+
 
 def get_file_hash(path):
     try:
