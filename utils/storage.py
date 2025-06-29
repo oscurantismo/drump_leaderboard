@@ -88,28 +88,22 @@ def save_scores(scores):
 
     os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)
 
-    # Avoid redundant writes
     try:
         existing_hash = get_file_hash(SCORES_FILE)
         current_hash = hashlib.md5(json.dumps(scores, sort_keys=True).encode()).hexdigest()
         if existing_hash == current_hash:
             return  # 🟡 Skip save — no change
     except Exception:
-        pass  # proceed with write if hash check fails
+        pass  # continue to write if hash check fails
 
-    temp_path = SCORES_FILE + ".tmp"
     try:
-        with open(temp_path, "w") as f:
+        with open(SCORES_FILE, "w") as f:
             json.dump(scores, f, indent=2)
             f.flush()
             os.fsync(f.fileno())
-        os.replace(temp_path, SCORES_FILE)
         log_event("✅ Successfully saved scores.json")
     except Exception as e:
-        log_event(f"❌ Failed to save scores.json: {e}")
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
+        log_event(f"❌ Failed to save scores.json directly: {e}")
 
 def get_file_hash(path):
     try:
@@ -143,13 +137,15 @@ def backup_scores(tag=None):
             log_event("🟡 Skipping backup — no changes since last snapshot.")
             return
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")  # use microseconds
     suffix = f"_{tag}" if tag else ""
     backup_path = os.path.join(BACKUP_FOLDER, f"leaderboard_backup_{timestamp}{suffix}.json")
 
     try:
         with open(backup_path, "w") as f:
             json.dump(scores, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
         log_event(f"💾 Backup saved: {backup_path}")
     except Exception as e:
         log_event(f"❌ Failed to write backup file: {e}")
