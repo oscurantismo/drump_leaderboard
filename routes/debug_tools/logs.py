@@ -200,6 +200,10 @@ def debug_logs_content():
         "🔔 Subscribed to notifications",
         "🔁 Already registered",
         "🔄 Score submitted",
+        "❌ Failed to save scores.json safely",
+        "💾 Backup saved",
+        "⚠️ Suspiciously fast tap",
+        "🆕 New user added",
     ]
 
     lines = [
