@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from utils.storage import load_scores, save_scores, backup_scores
 from utils.logging import log_event
 import datetime
+from collections import defaultdict, deque
+import time
 from routes.debug_tools.subscriptions import load_subscriptions, save_subscriptions
 
 user_routes = Blueprint("user_routes", __name__)
@@ -40,9 +42,6 @@ def register():
     log_event(f"📝 Registered new user: {username} (ID: {user_id})")
     return jsonify({"status": "registered"})
 
-
-from collections import defaultdict, deque
-import time
 
 submission_times = {}  # Tracks last submission time per user
 user_activity = defaultdict(lambda: deque(maxlen=50))  # Store recent taps
@@ -142,7 +141,11 @@ def submit():
         })
         log_event(f"🆕 New user added: {username} (ID: {user_id}) with score {score}")
 
-    save_scores(scores)
+    try:
+        save_scores(scores)
+    except Exception as e:
+        log_event(f"❌ Failed to save updated scores after submit: {e}")
+
     return jsonify({"status": "ok"})
 
 @user_routes.route("/profile")
