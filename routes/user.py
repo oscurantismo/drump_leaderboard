@@ -20,7 +20,6 @@ def register():
     scores = load_scores()
     for entry in scores:
         if entry.get("user_id") == user_id:
-            log_event(f"🔁 Already registered: {username} (ID: {user_id})")
             return jsonify({"status": "already_registered"})
 
     new_user = {
@@ -90,7 +89,8 @@ def submit():
                 # 🎁 Referral reward
                 referrer_id = entry.get("referred_by")
                 if old_score < 20 <= score and referrer_id and not entry.get("referral_reward_issued"):
-                    referrer = next((e for e in scores if e["user_id"] == referrer_id), None)
+                    referrer_index = next((i for i, e in enumerate(scores) if e.get("user_id") == referrer_id), None)
+                    referrer = scores[referrer_index] if referrer_index is not None else None
                     if referrer:
                         reward = 10000
                         referrer_old = referrer["score"]
