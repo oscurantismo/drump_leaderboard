@@ -70,9 +70,11 @@ def submit():
 
     scores = load_scores()
     updated = False
+    entry = None
 
-    for entry in scores:
-        if entry.get("user_id") == user_id:
+    for e in scores:
+        if e.get("user_id") == user_id:
+            entry = e
             old_score = entry["score"]
             if score > old_score or abs(score - old_score) > 5:
                 entry["score"] = score
@@ -132,14 +134,15 @@ def submit():
             break
 
     if not updated:
-        scores.append({
+        entry = {
             "username": username,
             "first_name": first_name,
             "last_name": last_name,
             "user_id": user_id,
             "score": score,
             "registered_at": datetime.datetime.now().isoformat()
-        })
+        }
+        scores.append(entry)
         log_event(f"🆕 New user added: {username} (ID: {user_id}) with score {score}")
 
     try:
