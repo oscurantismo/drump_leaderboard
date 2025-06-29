@@ -2,6 +2,9 @@ import os
 import json
 import fcntl
 import time
+import threading
+import hashlib
+from datetime import datetime
 from .logging import log_event
 
 SCORES_FILE = "/app/data/scores.json"
@@ -74,7 +77,7 @@ def save_scores(scores):
         log_event("❌ Invalid scores format — skipping save.")
         return
 
-    os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)  # ✅ Ensure folder exists
+    os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)
 
     temp_path = SCORES_FILE + ".tmp"
     try:
@@ -85,13 +88,18 @@ def save_scores(scores):
             os.fsync(f.fileno())
             fcntl.flock(f, fcntl.LOCK_UN)
         os.replace(temp_path, SCORES_FILE)
-        time.sleep(0.1)  # allow disk IO to settle
+        time.sleep(0.1)
     except Exception as e:
         log_event(f"❌ Failed to save scores.json safely: {e}")
 
+def get_file_hash(path):
+    try:
+        with open(path, "rb") as f:
+            return hashlib.md5(f.read()).hexdigest()
+    except Exception:
+        return None
 
 def backup_scores(tag=None):
-    os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)
     global _last_backup_time
     now = time.time()
 
@@ -101,11 +109,39 @@ def backup_scores(tag=None):
 
     _last_backup_time = now
     os.makedirs(BACKUP_FOLDER, exist_ok=True)
-    from datetime import datetime
+    scores = load_scores()
+
+    current_hash = get_file_hash(SCORES_FILE)
+    latest_backup = sorted([
+        f for f in os.listdir(BACKUP_FOLDER)
+        if f.endswith(".json")
+    ], reverse=True)
+
+    if latest_backup:
+        latest_path = os.path.join(BACKUP_FOLDER, latest_backup[0])
+        if get_file_hash(latest_path) == current_hash and tag is None:
+            log_event("🟡 Skipping backup — no changes since last snapshot.")
+            return
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     suffix = f"_{tag}" if tag else ""
     backup_path = os.path.join(BACKUP_FOLDER, f"leaderboard_backup_{timestamp}{suffix}.json")
-    scores = load_scores()
-    with open(backup_path, "w") as f:
-        json.dump(scores, f, indent=2)
-    log_event(f"💾 Backup saved: {backup_path}")
+
+    try:
+        with open(backup_path, "w") as f:
+            json.dump(scores, f, indent=2)
+        log_event(f"💾 Backup saved: {backup_path}")
+    except Exception as e:
+        log_event(f"❌ Failed to write backup file: {e}")
+
+# ------------------ Scheduled Backups ------------------
+def periodic_backup(interval_hours=6):
+    while True:
+        try:
+            backup_scores()
+        except Exception as e:
+            log_event(f"❌ Scheduled backup error: {e}")
+        time.sleep(interval_hours * 3600)
+
+# ✅ Launch background scheduler at runtime
+threading.Thread(target=periodic_backup, daemon=True).start()
