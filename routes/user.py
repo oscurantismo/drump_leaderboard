@@ -68,14 +68,13 @@ def submit():
     if len(recent_taps) > 30:
         log_event(f"🚨 High-frequency activity: {username} (ID: {user_id}) – {len(recent_taps)} taps in 10s")
 
-
     scores = load_scores()
     updated = False
 
     for entry in scores:
         if entry.get("user_id") == user_id:
             old_score = entry["score"]
-            if score > old_score:
+            if score > old_score or abs(score - old_score) > 5:
                 entry["score"] = score
                 entry["username"] = username
                 entry["first_name"] = first_name
@@ -105,6 +104,7 @@ def submit():
                             entry["score"] += reward
                             entry["referral_reward_issued"] = True
                             entry["referral_reward_time"] = datetime.datetime.now().isoformat()
+                            updated = True
 
                             if "referrals" not in referrer:
                                 referrer["referrals"] = []
@@ -123,6 +123,9 @@ def submit():
                             log_event(f"🎉 Referral bonus issued: {referrer['username']} and {username} +{reward} each at 20 punches")
                         else:
                             log_event(f"⛔ Duplicate referral ignored: {referrer['username']} already rewarded for referring {username}")
+
+                        # ✅ Reassign updated referrer to ensure persistence
+                        scores[referrer_index] = referrer
 
                 log_event(f"✅ Updated score for {username} (ID: {user_id}) to {entry['score']}")
             updated = True
@@ -144,7 +147,10 @@ def submit():
     except Exception as e:
         log_event(f"❌ Failed to save updated scores after submit: {e}")
 
-    return jsonify({"status": "ok"})
+    return jsonify({
+        "status": "ok",
+        "score": entry["score"]
+    })
 
 @user_routes.route("/profile")
 def profile():
