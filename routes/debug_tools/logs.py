@@ -197,6 +197,9 @@ def debug_logs_content():
     filtered_out_keywords = [
         "✅ Updated score for",
         "📝 Registered new user",
+        "🔄 Score submitted",
+        "🔔 Subscribed to notifications",
+        "🔁 Already registered",
     ]
 
     lines = [
