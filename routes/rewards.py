@@ -33,8 +33,24 @@ def _load() -> list[dict]:
         return []
 
 def _save(data: list[dict]) -> None:
-    with open(REWARDS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+    if not isinstance(data, list):
+        log_event("❌ Invalid rewards data — not a list.")
+        return
+
+    temp_path = REWARDS_FILE + ".tmp"
+    try:
+        with open(temp_path, "w") as f:
+            json.dump(data, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temp_path, REWARDS_FILE)
+        time.sleep(0.05)
+    except Exception as e:
+        log_event(f"❌ Failed to write rewards.json safely: {e}")
+
+def validate_rewards(data):
+    return isinstance(data, list) and all(isinstance(e, dict) for e in data)
+
 
 # ---------- public function ---------------------------------------------- #
 def log_reward_event(
