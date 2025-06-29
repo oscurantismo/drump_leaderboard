@@ -199,6 +199,7 @@ def debug_logs_content():
         "📝 Registered new user",
         "🔔 Subscribed to notifications",
         "🔁 Already registered",
+        "🔄 Score submitted",
     ]
 
     lines = [
