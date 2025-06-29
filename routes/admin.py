@@ -47,10 +47,6 @@ def upload_scores():
         file_data = uploaded_file.read()
         data = json.loads(file_data)  # Check it's valid JSON
 
-        # ✅ Save current scores.json as backup before replacing
-        from utils.storage import backup_scores
-        backup_scores(tag="before_upload")
-
         # ✅ Overwrite scores.json
         with open(SCORES_FILE, "w") as f:
             f.write(file_data.decode("utf-8"))
