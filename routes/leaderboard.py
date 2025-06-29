@@ -5,8 +5,14 @@ from routes.rewards import log_reward_event, _load as load_reward_ledger
 
 leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
-MAINTENANCE_MODE = True
+MAINTENANCE_MODE = False
 ENABLE_REWARD_ISSUING = False
+LEADERBOARD_ENABLED = False  # 🔒 Set to True to unlock leaderboard for all users
+
+@leaderboard_routes.route("/leaderboard-status")
+def leaderboard_status():
+    return jsonify({"enabled": LEADERBOARD_ENABLED})
+
 
 @leaderboard_routes.route("/leaderboard-page")
 def leaderboard_page():
