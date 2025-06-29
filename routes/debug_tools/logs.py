@@ -193,6 +193,18 @@ def debug_logs_content():
     with open(LOG_PATH, "r") as f:
         lines = f.readlines()
 
+    # Filter out unwanted logs
+    filtered_out_keywords = [
+        "✅ Updated score for",
+        "📝 Registered new user",
+    ]
+
+    lines = [
+        line for line in lines
+        if not any(kw in line for kw in filtered_out_keywords)
+    ]
+
+
     if all_requested:
         selected = lines
     else:
