@@ -49,24 +49,24 @@ def load_scores():
         except json.JSONDecodeError as e:
             log_event(f"❌ Failed to decode scores.json: {e} (Path: {SCORES_FILE})")
 
-    # 🔁 Try auto-restore from latest good backup, including manual
+    # 🔁 Try auto-restore from latest good backup (based on modification time)
     try:
         backups = sorted([
-            f for f in os.listdir(BACKUP_FOLDER)
+            os.path.join(BACKUP_FOLDER, f)
+            for f in os.listdir(BACKUP_FOLDER)
             if f.endswith(".json")
-        ], reverse=True)
+        ], key=os.path.getmtime, reverse=True)
 
-        for backup_file in backups:
-            path = os.path.join(BACKUP_FOLDER, backup_file)
+        for backup_path in backups:
             try:
-                with open(path, "r") as b:
+                with open(backup_path, "r") as b:
                     data = json.load(b)
                 with open(SCORES_FILE, "w") as w:
                     json.dump(data, w, indent=2)
-                log_event(f"♻️ Restored scores.json from backup: {backup_file}")
+                log_event(f"♻️ Restored scores.json from backup: {os.path.basename(backup_path)}")
                 return data
             except Exception as inner:
-                log_event(f"⚠️ Skipped invalid backup {backup_file}: {inner}")
+                log_event(f"⚠️ Skipped invalid backup {os.path.basename(backup_path)}: {inner}")
     except Exception as outer:
         log_event(f"❌ Failed to restore from backup: {outer}")
 
@@ -80,7 +80,6 @@ def save_scores(scores):
     os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)
 
     try:
-        # Write directly and atomically (best-effort)
         with open(SCORES_FILE, "w") as f:
             json.dump(scores, f, indent=2)
             f.flush()
@@ -88,7 +87,6 @@ def save_scores(scores):
         log_event("✅ Successfully saved scores.json")
     except Exception as e:
         log_event(f"❌ Failed to save scores.json: {e}")
-
 
 def get_file_hash(path):
     try:
@@ -111,12 +109,13 @@ def backup_scores(tag=None):
 
     current_hash = get_file_hash(SCORES_FILE)
     latest_backup = sorted([
-        f for f in os.listdir(BACKUP_FOLDER)
+        os.path.join(BACKUP_FOLDER, f)
+        for f in os.listdir(BACKUP_FOLDER)
         if f.endswith(".json")
-    ], reverse=True)
+    ], key=os.path.getmtime, reverse=True)
 
     if latest_backup:
-        latest_path = os.path.join(BACKUP_FOLDER, latest_backup[0])
+        latest_path = latest_backup[0]
         if get_file_hash(latest_path) == current_hash and tag is None:
             log_event("🟡 Skipping backup — no changes since last snapshot.")
             return
