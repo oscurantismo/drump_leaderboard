@@ -36,20 +36,28 @@ def ensure_file():
 
 def load_scores():
     ensure_file()
-    with open(SCORES_FILE, "r") as f:
-        try:
+
+    # === Try to load and parse scores.json
+    try:
+        with open(SCORES_FILE, "r") as f:
             fcntl.flock(f, fcntl.LOCK_SH)
             content = f.read()
             fcntl.flock(f, fcntl.LOCK_UN)
 
-            if not content.strip():
-                raise json.JSONDecodeError("File is empty", content, 0)
+        if not content.strip():
+            raise json.JSONDecodeError("File is empty", content, 0)
 
-            return json.loads(content)
-        except json.JSONDecodeError as e:
-            log_event(f"❌ Failed to decode scores.json: {e} (Path: {SCORES_FILE})")
+        scores = json.loads(content)
 
-    # 🔁 Try auto-restore from latest good backup (based on modification time)
+        if not validate_scores(scores):
+            raise ValueError("Invalid format")
+
+        return scores
+
+    except (json.JSONDecodeError, ValueError) as e:
+        log_event(f"❌ Failed to load valid scores.json: {e} — attempting backup restore")
+    
+    # === Try restore from latest modified backup (skip if also broken)
     try:
         backups = sorted([
             os.path.join(BACKUP_FOLDER, f)
@@ -61,10 +69,11 @@ def load_scores():
             try:
                 with open(backup_path, "r") as b:
                     data = json.load(b)
-                with open(SCORES_FILE, "w") as w:
-                    json.dump(data, w, indent=2)
-                log_event(f"♻️ Restored scores.json from backup: {os.path.basename(backup_path)}")
-                return data
+                if validate_scores(data):
+                    with open(SCORES_FILE, "w") as w:
+                        json.dump(data, w, indent=2)
+                    log_event(f"♻️ Restored scores.json from backup: {os.path.basename(backup_path)}")
+                    return data
             except Exception as inner:
                 log_event(f"⚠️ Skipped invalid backup {os.path.basename(backup_path)}: {inner}")
     except Exception as outer:
@@ -78,18 +87,26 @@ def save_scores(scores):
         return
 
     os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)
-    temp_path = SCORES_FILE + ".tmp"
 
+    # Avoid redundant writes
+    try:
+        existing_hash = get_file_hash(SCORES_FILE)
+        current_hash = hashlib.md5(json.dumps(scores, sort_keys=True).encode()).hexdigest()
+        if existing_hash == current_hash:
+            return  # 🟡 Skip save — no change
+    except Exception:
+        pass  # proceed with write if hash check fails
+
+    temp_path = SCORES_FILE + ".tmp"
     try:
         with open(temp_path, "w") as f:
             json.dump(scores, f, indent=2)
             f.flush()
             os.fsync(f.fileno())
-        os.replace(temp_path, SCORES_FILE)  # ✅ Atomic move
+        os.replace(temp_path, SCORES_FILE)
         log_event("✅ Successfully saved scores.json")
     except Exception as e:
         log_event(f"❌ Failed to save scores.json: {e}")
-        # Clean up partially written temp
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
