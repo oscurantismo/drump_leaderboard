@@ -74,6 +74,8 @@ def save_scores(scores):
         log_event("❌ Invalid scores format — skipping save.")
         return
 
+    os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)  # ✅ Ensure folder exists
+
     temp_path = SCORES_FILE + ".tmp"
     try:
         with open(temp_path, "w") as f:
@@ -87,7 +89,9 @@ def save_scores(scores):
     except Exception as e:
         log_event(f"❌ Failed to save scores.json safely: {e}")
 
+
 def backup_scores(tag=None):
+    os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)
     global _last_backup_time
     now = time.time()
 
