@@ -86,15 +86,17 @@ def save_scores(scores):
         log_event("❌ Invalid scores format — skipping save.")
         return
 
-    os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)
+    dir_path = os.path.dirname(SCORES_FILE)
+    os.makedirs(dir_path, exist_ok=True)
 
+    # Hash check: prevent redundant writes
     try:
-        existing_hash = get_file_hash(SCORES_FILE)
-        current_hash = hashlib.md5(json.dumps(scores, sort_keys=True).encode()).hexdigest()
-        if existing_hash == current_hash:
-            return
+        with open(SCORES_FILE, "r") as f:
+            existing_data = json.load(f)
+        if get_data_hash(existing_data) == get_data_hash(scores):
+            return  # ✅ No changes, skip write
     except Exception:
-        pass
+        pass  # Proceed if current file is missing or corrupted
 
     temp_path = SCORES_FILE + ".next"
 
@@ -104,20 +106,25 @@ def save_scores(scores):
             f.flush()
             os.fsync(f.fileno())
 
-        os.replace(temp_path, SCORES_FILE)  # atomic if supported
+        if not os.path.exists(temp_path):
+            raise FileNotFoundError("Temp file was not written")
+
+        os.replace(temp_path, SCORES_FILE)  # 🔁 Safe atomic write
         log_event("✅ Successfully saved scores.json")
     except Exception as e:
         log_event(f"❌ Failed to write safe scores.json: {e}")
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
-
-def get_file_hash(path):
+def get_data_hash(data):
+    """Returns consistent hash of scores list."""
     try:
-        with open(path, "rb") as f:
-            return hashlib.md5(f.read()).hexdigest()
+        return hashlib.md5(
+            json.dumps(data, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
     except Exception:
         return None
+
 
 def backup_scores(tag=None):
     global _last_backup_time
