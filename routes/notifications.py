@@ -1,7 +1,7 @@
 # notifications.py
 import json
 from flask import Blueprint, request, jsonify
-from datetime import datetime
+from utils import utc_timestamp
 
 notifications_routes = Blueprint("notifications_routes", __name__)
 SUBSCRIPTION_PATH = "subscriptions.json"
@@ -46,7 +46,7 @@ def subscribe():
         **subs.get(user_id, {}),
         "subscribed": True,
         "username": username,
-        "subscribed_at": datetime.datetime.utcnow().isoformat()
+        "subscribed_at": utc_timestamp()
     }
 
     with open("subscriptions.json", "w") as f:

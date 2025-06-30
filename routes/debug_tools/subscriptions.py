@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file, render_template_string
-import json, os, datetime
+import json, os
+from utils.timeutils import toronto_now
 from werkzeug.utils import secure_filename
 from utils.logging import log_event
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -16,7 +17,7 @@ def auto_backup_subscriptions():
         return
 
     try:
-        timestamp = datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        timestamp = toronto_now().strftime("%Y%m%d-%H%M%S")
         backup_path = os.path.join(BACKUP_DIR, f"auto_daily_{timestamp}.json")
 
         with open(SUB_PATH, "r") as f:
@@ -143,7 +144,6 @@ def download_subscription_backup():
         return "❌ subscriptions.json not found.", 404
     return send_file(SUB_PATH, as_attachment=True)
 
-from utils.logging import log_event  # ✅ Add this at the top if not already
 
 @subscription_routes.route("/subscription-backup/upload", methods=["POST"])
 def upload_subscription_backup():
@@ -160,7 +160,7 @@ def upload_subscription_backup():
 
         # Backup current
         if os.path.exists(SUB_PATH):
-            timestamp = datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+            timestamp = toronto_now().strftime("%Y%m%d-%H%M%S")
             backup_path = os.path.join(BACKUP_DIR, f"auto_{timestamp}.json")
             with open(SUB_PATH, "r") as old:
                 with open(backup_path, "w") as bkp:
@@ -198,7 +198,7 @@ def restore_backup():
 
         # Backup current before restoring
         if os.path.exists(SUB_PATH):
-            timestamp = datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+            timestamp = toronto_now().strftime("%Y%m%d-%H%M%S")
             with open(SUB_PATH, "r") as cur, open(os.path.join(BACKUP_DIR, f"auto_before_restore_{timestamp}.json"), "w") as bkp:
                 bkp.write(cur.read())
 
