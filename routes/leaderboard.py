@@ -7,7 +7,7 @@ leaderboard_routes = Blueprint("leaderboard_routes", __name__)
 
 MAINTENANCE_MODE = False
 ENABLE_REWARD_ISSUING = False
-LEADERBOARD_ENABLED = False  # 🔒 Set to True to unlock leaderboard for all users
+LEADERBOARD_ENABLED = True  # 🔒 Set to True to unlock leaderboard for all users
 
 @leaderboard_routes.route("/leaderboard-status")
 def leaderboard_status():
