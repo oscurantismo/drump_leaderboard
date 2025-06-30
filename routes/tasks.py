@@ -12,6 +12,7 @@
 from flask import Blueprint, request, jsonify
 from utils.storage import load_scores, save_scores
 from utils.logging import log_event
+from utils import normalize_username, user_log_info
 from routes.rewards import log_reward_event  # NEW
 
 tasks_routes = Blueprint("tasks_routes", __name__)
@@ -74,6 +75,9 @@ def complete_task():
     if not user:
         return jsonify({"error": "user not registered"}), 404
 
+    username = normalize_username(user.get("username"))
+    user_desc = user_log_info(username, user.get("first_name", ""), user.get("last_name", ""))
+
     if task_id in user["tasks_done"]:
         return jsonify({"status": "already_completed"})
 
@@ -87,13 +91,15 @@ def complete_task():
     save_scores(scores)
 
     # --- diagnostic log before reward logging ---------------------------- #
-    log_event(f"📡 REACHED log_reward_event for user {user_id}, task {task_id}")
-    print(f"📡 REACHED log_reward_event for user {user.get('username', 'Anonymous')} ({user_id}), task {task_id}")
+    log_event(f"📡 REACHED log_reward_event for user {user_desc} (ID: {user_id}), task {task_id}")
+    print(f"📡 REACHED log_reward_event for user {user_desc} (ID: {user_id}), task {task_id}")
 
     # --- log to central ledger ------------------------------------------ #
     log_reward_event(
         user_id=user_id,
-        username=user.get("username", "Anonymous"),
+        username=username,
+        first_name=user.get("first_name", ""),
+        last_name=user.get("last_name", ""),
         reward_type="task_complete",
         source_id=task_id,
         change=reward,
@@ -103,7 +109,7 @@ def complete_task():
     )
 
     # Log to terminal and logs.txt
-    print(f"📝 Logging reward for {user.get('username', 'Anonymous')} ({user_id}) – task_complete:{task_id}")
-    log_event(f"🎁 Logged reward for {user.get('username', 'Anonymous')} ({user_id}) – task_complete:{task_id}")
+    print(f"📝 Logging reward for {user_desc} (ID: {user_id}) – task_complete:{task_id}")
+    log_event(f"🎁 Logged reward for {user_desc} (ID: {user_id}) – task_complete:{task_id}")
 
     return jsonify({"status": "ok", "new_score": new, "reward": reward})

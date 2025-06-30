@@ -10,6 +10,8 @@ import os, json
 from datetime import datetime
 from flask import Blueprint, request, jsonify, session
 from utils.logging import log_event  # ✅ Logging to logs.txt
+from utils import user_log_info
+from utils import utc_timestamp
 
 rewards_bp = Blueprint("rewards", __name__)
 REWARDS_FILE = "/app/data/rewards.json"
@@ -57,6 +59,8 @@ def log_reward_event(
     *,
     user_id: str,
     username: str,
+    first_name: str = "",
+    last_name: str = "",
     reward_type: str,          # e.g. "task_complete"
     source_id: str,            # e.g. task_id
     change: int,
@@ -66,6 +70,7 @@ def log_reward_event(
 ) -> None:
     """Append a reward entry unless an identical one already exists."""
     ledger = _load()
+    user_desc = user_log_info(username, first_name, last_name)
 
     # TEMP: comment this out to test
     duplicate = any(
@@ -75,14 +80,20 @@ def log_reward_event(
         for e in ledger
     )
     if duplicate:
-        print(f"⚠️ Skipped duplicate reward for {username} ({user_id}) – {reward_type}:{source_id}")
-        log_event(f"⚠️ Duplicate reward not logged for {username} ({user_id}) – {reward_type}:{source_id}")
+        print(
+            f"⚠️ Skipped duplicate reward for {user_desc} (ID: {user_id}) – {reward_type}:{source_id}"
+        )
+        log_event(
+            f"⚠️ Duplicate reward not logged for {user_desc} (ID: {user_id}) – {reward_type}:{source_id}"
+        )
         return
 
     reward_entry = {
-        "timestamp": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "timestamp": utc_timestamp(),
         "user_id": user_id,
         "username": username,
+        "first_name": first_name,
+        "last_name": last_name,
         "reward_type": reward_type,
         "source_id": source_id,
         "change": change,
@@ -94,8 +105,10 @@ def log_reward_event(
     ledger.append(reward_entry)
     _save(ledger)
 
-    print(f"💾 Logged reward for {username} ({user_id}) – {reward_type}:{source_id}")
-    log_event(f"💾 Logged reward: {reward_type}:{source_id} for {username} ({user_id}) | Δ {change} → {new_score}")
+    print(f"💾 Logged reward for {user_desc} (ID: {user_id}) – {reward_type}:{source_id}")
+    log_event(
+        f"💾 Logged reward: {reward_type}:{source_id} for {user_desc} (ID: {user_id}) | Δ {change} → {new_score}"
+    )
 
 # ---------- API endpoints (debug / backup) ------------------------------- #
 @rewards_bp.route("/rewards", methods=["GET"])

@@ -1,10 +1,10 @@
-import datetime
 import os
+from .timeutils import utc_timestamp
 
 LOG_FILE = "/app/data/logs.txt"
 
 def log_event(message):
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = utc_timestamp()
     full = f"[{timestamp}] {message}"
     print(full)  # ✅ Railway console logs
     try:
