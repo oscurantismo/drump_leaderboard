@@ -81,6 +81,17 @@ def load_scores():
 
     return []
 
+
+def _atomic_write(path: str, data: str):
+    """Write data to path atomically using Railway-compatible tmp file."""
+    tmp_path = path + ".tmp"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(tmp_path, "w") as tmp:
+        tmp.write(data)
+        tmp.flush()
+        os.fsync(tmp.fileno())
+    os.replace(tmp_path, path)
+
 def save_scores(scores):
     if not validate_scores(scores):
         log_event("❌ Invalid scores format — skipping save.")
@@ -96,14 +107,21 @@ def save_scores(scores):
     except Exception:
         pass  # continue to write if hash check fails
 
+    tmp_path = SCORES_FILE + ".tmp"
     try:
-        with open(SCORES_FILE, "w") as f:
-            json.dump(scores, f, indent=2)
-            f.flush()
-            os.fsync(f.fileno())
+        with open(SCORES_FILE, "a+") as lock_f:
+            fcntl.flock(lock_f, fcntl.LOCK_EX)
+            data = json.dumps(scores, indent=2)
+            _atomic_write(SCORES_FILE, data)
+            fcntl.flock(lock_f, fcntl.LOCK_UN)
         log_event("✅ Successfully saved scores.json")
     except Exception as e:
         log_event(f"❌ Failed to save scores.json directly: {e}")
+        try:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        except Exception:
+            pass
 
 def get_file_hash(path):
     try:
@@ -142,13 +160,14 @@ def backup_scores(tag=None):
     backup_path = os.path.join(BACKUP_FOLDER, f"leaderboard_backup_{timestamp}{suffix}.json")
 
     try:
-        with open(backup_path, "w") as f:
-            json.dump(scores, f, indent=2)
-            f.flush()
-            os.fsync(f.fileno())
+        _atomic_write(backup_path, json.dumps(scores, indent=2))
         log_event(f"💾 Backup saved: {backup_path}")
     except Exception as e:
         log_event(f"❌ Failed to write backup file: {e}")
+        try:
+            os.remove(backup_path + ".tmp")
+        except Exception:
+            pass
 
 # ------------------ Scheduled Backups ------------------
 def periodic_backup(interval_hours=6):
