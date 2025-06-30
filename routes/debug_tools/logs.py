@@ -199,6 +199,8 @@ def debug_logs_content():
         "🔔 Subscribed to notifications",
         "🔁 Already registered",
         "⚠️ Suspiciously fast tap",
+        "✅ Successfully saved",
+        "✅ Updated score",
     ]
 
     lines = [
