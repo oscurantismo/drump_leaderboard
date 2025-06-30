@@ -81,49 +81,47 @@ def load_scores():
 
     return []
 
+
+def _atomic_write(path: str, data: str):
+    """Write data to path atomically using Railway-compatible tmp file."""
+    tmp_path = path + ".tmp"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(tmp_path, "w") as tmp:
+        tmp.write(data)
+        tmp.flush()
+        os.fsync(tmp.fileno())
+    os.replace(tmp_path, path)
+
 def save_scores(scores):
     if not validate_scores(scores):
         log_event("❌ Invalid scores format — skipping save.")
         return
 
-    dir_path = os.path.dirname(SCORES_FILE)
-    os.makedirs(dir_path, exist_ok=True)
+    os.makedirs(os.path.dirname(SCORES_FILE), exist_ok=True)
 
-    # Hash check: prevent redundant writes
     try:
-        with open(SCORES_FILE, "r") as f:
-            existing_data = json.load(f)
-        if get_data_hash(existing_data) == get_data_hash(scores):
-            return  # ✅ No changes, skip write
+        existing_hash = get_file_hash(SCORES_FILE)
+        current_hash = hashlib.md5(json.dumps(scores, sort_keys=True).encode()).hexdigest()
+        if existing_hash == current_hash:
+            return  # 🟡 Skip save — no change
     except Exception:
-        pass  # Proceed if current file is missing or corrupted
+        pass  # continue to write if hash check fails
 
-    temp_path = SCORES_FILE + ".next"
-
+    tmp_path = SCORES_FILE + ".tmp"
     try:
-        with open(temp_path, "w") as f:
-            json.dump(scores, f, indent=2)
-            f.flush()
-            os.fsync(f.fileno())
-
-        if not os.path.exists(temp_path):
-            raise FileNotFoundError("Temp file was not written")
-
-        os.replace(temp_path, SCORES_FILE)  # 🔁 Safe atomic write
+        with open(SCORES_FILE, "a+") as lock_f:
+            fcntl.flock(lock_f, fcntl.LOCK_EX)
+            data = json.dumps(scores, indent=2)
+            _atomic_write(SCORES_FILE, data)
+            fcntl.flock(lock_f, fcntl.LOCK_UN)
         log_event("✅ Successfully saved scores.json")
     except Exception as e:
-        log_event(f"❌ Failed to write safe scores.json: {e}")
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
-def get_data_hash(data):
-    """Returns consistent hash of scores list."""
-    try:
-        return hashlib.md5(
-            json.dumps(data, sort_keys=True, separators=(",", ":")).encode()
-        ).hexdigest()
-    except Exception:
-        return None
+        log_event(f"❌ Failed to save scores.json directly: {e}")
+        try:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        except Exception:
+            pass
 
 def get_file_hash(path):
     try:
@@ -131,7 +129,6 @@ def get_file_hash(path):
             return hashlib.md5(f.read()).hexdigest()
     except Exception:
         return None
-
 
 def backup_scores(tag=None):
     global _last_backup_time
@@ -163,13 +160,14 @@ def backup_scores(tag=None):
     backup_path = os.path.join(BACKUP_FOLDER, f"leaderboard_backup_{timestamp}{suffix}.json")
 
     try:
-        with open(backup_path, "w") as f:
-            json.dump(scores, f, indent=2)
-            f.flush()
-            os.fsync(f.fileno())
+        _atomic_write(backup_path, json.dumps(scores, indent=2))
         log_event(f"💾 Backup saved: {backup_path}")
     except Exception as e:
         log_event(f"❌ Failed to write backup file: {e}")
+        try:
+            os.remove(backup_path + ".tmp")
+        except Exception:
+            pass
 
 # ------------------ Scheduled Backups ------------------
 def periodic_backup(interval_hours=6):
