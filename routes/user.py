@@ -10,7 +10,7 @@ user_routes = Blueprint("user_routes", __name__)
 
 @user_routes.route("/register", methods=["POST"])
 def register():
-    data = request.get_json()
+    data = request.get_json(force=True)
     username = (data.get("username") or "Anonymous").strip()
     first_name = (data.get("first_name") or "").strip()
     last_name = (data.get("last_name") or "").strip()
@@ -35,6 +35,8 @@ def register():
         new_user["referred_by"] = referrer_id
         log_event(f"🧾 {username} was referred by {referrer_id}")
 
+    log_event(f"📝 Registered new user: {username} ({user_id})")
+
     scores.append(new_user)
     save_scores(scores)
     backup_scores()
@@ -46,7 +48,7 @@ user_activity = defaultdict(lambda: deque(maxlen=50))  # Store recent taps
 
 @user_routes.route("/submit", methods=["POST"])
 def submit():
-    data = request.get_json()
+    data = request.get_json(force=True)
     username = (data.get("username") or "Anonymous").strip()
     first_name = (data.get("first_name") or "").strip()
     last_name = (data.get("last_name") or "").strip()
