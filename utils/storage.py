@@ -92,18 +92,25 @@ def save_scores(scores):
         existing_hash = get_file_hash(SCORES_FILE)
         current_hash = hashlib.md5(json.dumps(scores, sort_keys=True).encode()).hexdigest()
         if existing_hash == current_hash:
-            return  # 🟡 Skip save — no change
+            return
     except Exception:
-        pass  # continue to write if hash check fails
+        pass
+
+    temp_path = SCORES_FILE + ".next"
 
     try:
-        with open(SCORES_FILE, "w") as f:
+        with open(temp_path, "w") as f:
             json.dump(scores, f, indent=2)
             f.flush()
             os.fsync(f.fileno())
+
+        os.replace(temp_path, SCORES_FILE)  # atomic if supported
         log_event("✅ Successfully saved scores.json")
     except Exception as e:
-        log_event(f"❌ Failed to save scores.json directly: {e}")
+        log_event(f"❌ Failed to write safe scores.json: {e}")
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
 
 def get_file_hash(path):
     try:
