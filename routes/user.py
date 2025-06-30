@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from utils.storage import load_scores, save_scores, backup_scores
 from utils.logging import log_event
+from utils import normalize_username, user_log_info
 import datetime
 from collections import defaultdict, deque
 import time
@@ -11,7 +12,7 @@ user_routes = Blueprint("user_routes", __name__)
 @user_routes.route("/register", methods=["POST"])
 def register():
     data = request.get_json(force=True)
-    username = (data.get("username") or "Anonymous").strip()
+    username = normalize_username(data.get("username"))
     first_name = (data.get("first_name") or "").strip()
     last_name = (data.get("last_name") or "").strip()
     user_id = str(data.get("user_id", "")).strip()
@@ -31,11 +32,13 @@ def register():
         "registered_at": datetime.datetime.now().isoformat()
     }
 
+    user_desc = user_log_info(username, first_name, last_name)
+
     if referrer_id:
         new_user["referred_by"] = referrer_id
-        log_event(f"🧾 {username} was referred by {referrer_id}")
+        log_event(f"🧾 {user_desc} was referred by {referrer_id}")
 
-    log_event(f"📝 Registered new user: {username} ({user_id})")
+    log_event(f"📝 Registered new user: {user_desc} (ID: {user_id})")
 
     scores.append(new_user)
     save_scores(scores)
@@ -49,11 +52,13 @@ user_activity = defaultdict(lambda: deque(maxlen=50))  # Store recent taps
 @user_routes.route("/submit", methods=["POST"])
 def submit():
     data = request.get_json(force=True)
-    username = (data.get("username") or "Anonymous").strip()
+    username = normalize_username(data.get("username"))
     first_name = (data.get("first_name") or "").strip()
     last_name = (data.get("last_name") or "").strip()
     user_id = str(data.get("user_id", "")).strip()
     score = max(0, int(data.get("score", 0)))
+
+    user_desc = user_log_info(username, first_name, last_name)
 
     now = time.time()
 
@@ -63,12 +68,16 @@ def submit():
     if last_time:
         interval = now - last_time
         if interval < 0.2:
-            log_event(f"⚠️ Suspiciously fast tap: {username} (ID: {user_id}) – {interval:.3f}s")
+            log_event(
+                f"⚠️ Suspiciously fast tap: {user_desc} (ID: {user_id}) – {interval:.3f}s"
+            )
 
     user_activity[user_id].append(now)
     recent_taps = [t for t in user_activity[user_id] if now - t <= 10]
     if len(recent_taps) > 30:
-        log_event(f"🚨 High-frequency activity: {username} (ID: {user_id}) – {len(recent_taps)} taps in 10s")
+        log_event(
+            f"🚨 High-frequency activity: {user_desc} (ID: {user_id}) – {len(recent_taps)} taps in 10s"
+        )
 
     scores = load_scores()
     updated = False
@@ -87,7 +96,9 @@ def submit():
                 # 🎯 Bonus for 100s milestone
                 if score % 100 == 0:
                     entry["score"] += 25
-                    log_event(f"🎯 Milestone reached: {score} → +25 bonus punches for {username}")
+                    log_event(
+                        f"🎯 Milestone reached: {score} → +25 bonus punches for {user_desc}"
+                    )
 
                 # 🎁 Referral reward
                 referrer_id = entry.get("referred_by")
@@ -124,14 +135,30 @@ def submit():
                                 "after_score": referrer["score"]
                             })
 
-                            log_event(f"🎉 Referral bonus issued: {referrer['username']} and {username} +{reward} each at 20 punches")
+                            referrer_desc = user_log_info(
+                                referrer.get('username'),
+                                referrer.get('first_name', ''),
+                                referrer.get('last_name', '')
+                            )
+                            log_event(
+                                f"🎉 Referral bonus issued: {referrer_desc} and {user_desc} +{reward} each at 20 punches"
+                            )
                         else:
-                            log_event(f"⛔ Duplicate referral ignored: {referrer['username']} already rewarded for referring {username}")
+                            referrer_desc = user_log_info(
+                                referrer.get('username'),
+                                referrer.get('first_name', ''),
+                                referrer.get('last_name', '')
+                            )
+                            log_event(
+                                f"⛔ Duplicate referral ignored: {referrer_desc} already rewarded for referring {user_desc}"
+                            )
 
                         # ✅ Reassign updated referrer to ensure persistence
                         scores[referrer_index] = referrer
 
-                log_event(f"✅ Updated score for {username} (ID: {user_id}) to {entry['score']}")
+                log_event(
+                    f"✅ Updated score for {user_desc} (ID: {user_id}) to {entry['score']}"
+                )
             updated = True
             break
 
@@ -145,7 +172,9 @@ def submit():
             "registered_at": datetime.datetime.now().isoformat()
         }
         scores.append(entry)
-        log_event(f"🆕 New user added: {username} (ID: {user_id}) with score {score}")
+        log_event(
+            f"🆕 New user added: {user_desc} (ID: {user_id}) with score {score}"
+        )
 
     try:
         save_scores(scores)
@@ -182,7 +211,7 @@ def profile():
 def subscribe_notifications():
     data = request.get_json(force=True)
     user_id = str(data.get("user_id", "")).strip()
-    username = data.get("username", "Anonymous")
+    username = normalize_username(data.get("username"))
 
     scores = load_scores()
     user = next((e for e in scores if e["user_id"] == user_id), None)
@@ -197,11 +226,12 @@ def subscribe_notifications():
         "username": username,
         "subscribed": True,
         "subscribed_at": datetime.datetime.now().isoformat(),
-        "opted_out": False
+        "opted_out": False,
     }
     save_subscriptions(subs)
 
-    log_event(f"🔔 Subscribed to notifications: {username} ({user_id})")
+    user_desc = user_log_info(user.get("username"), user.get("first_name", ""), user.get("last_name", ""))
+    log_event(f"🔔 Subscribed to notifications: {user_desc} (ID: {user_id})")
     return jsonify({"status": "subscribed"})
 
 
@@ -226,7 +256,8 @@ def unsubscribe_notifications():
     }
     save_subscriptions(subs)
 
-    log_event(f"🔕 Unsubscribed from notifications: {user.get('username')} ({user_id})")
+    user_desc = user_log_info(user.get("username"), user.get("first_name", ""), user.get("last_name", ""))
+    log_event(f"🔕 Unsubscribed from notifications: {user_desc} (ID: {user_id})")
     return jsonify({"status": "unsubscribed"})
 
 
