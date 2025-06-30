@@ -195,7 +195,6 @@ def debug_logs_content():
 
     # Filter out unwanted logs
     filtered_out_keywords = [
-        "✅ Updated score for",
         "📝 Registered new user",
         "🔔 Subscribed to notifications",
         "🔁 Already registered",
