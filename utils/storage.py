@@ -125,6 +125,13 @@ def get_data_hash(data):
     except Exception:
         return None
 
+def get_file_hash(path):
+    try:
+        with open(path, "rb") as f:
+            return hashlib.md5(f.read()).hexdigest()
+    except Exception:
+        return None
+
 
 def backup_scores(tag=None):
     global _last_backup_time
