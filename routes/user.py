@@ -35,6 +35,8 @@ def register():
         new_user["referred_by"] = referrer_id
         log_event(f"🧾 {username} was referred by {referrer_id}")
 
+    log_event(f"📝 Registered new user: {username} ({user_id})")
+
     scores.append(new_user)
     save_scores(scores)
     backup_scores()

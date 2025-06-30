@@ -110,7 +110,7 @@ def user_logs():
             "punches": user.get("score", 0),
             "referrals_sent": len([u for u in scores if u.get("referred_by") == user.get("user_id")]),
             "referrals_accepted": len(user.get("referrals", [])),
-            "registered": user.get("referrals", [{}])[0].get("timestamp", "N/A")
+            "registered": user.get("registered_at", "N/A")
         })
 
     html = """
@@ -159,7 +159,7 @@ def user_logs():
                 <th>Punches</th>
                 <th>Referrals Sent</th>
                 <th>Referrals Accepted</th>
-                <th>First Referral Reward Time</th>
+                <th>Registered At</th>
             </tr>
             {% for entry in logs %}
             <tr>
