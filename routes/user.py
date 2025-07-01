@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from utils.storage import load_scores, save_scores, backup_scores
 from utils.logging import log_event
-from utils import normalize_username, user_log_info, utc_timestamp
+from utils import normalize_username, user_log_info, gmt4_timestamp
 import datetime
 from collections import defaultdict, deque
 import time
@@ -28,7 +28,7 @@ def register():
         "last_name": last_name,
         "user_id": user_id,
         "score": 0,
-        "registered_at": utc_timestamp()
+        "registered_at": gmt4_timestamp()
     }
 
     user_desc = user_log_info(username, first_name, last_name)
@@ -119,7 +119,7 @@ def submit():
                             referrer["score"] += reward
                             entry["score"] += reward
                             entry["referral_reward_issued"] = True
-                            entry["referral_reward_time"] = utc_timestamp()
+                            entry["referral_reward_time"] = gmt4_timestamp()
                             updated = True
 
                             if "referrals" not in referrer:
@@ -170,7 +170,7 @@ def submit():
             "last_name": last_name,
             "user_id": user_id,
             "score": score,
-            "registered_at": utc_timestamp()
+            "registered_at": gmt4_timestamp()
         }
         scores.append(entry)
         log_event(
@@ -226,7 +226,7 @@ def subscribe_notifications():
     subs[user_id] = {
         "username": username,
         "subscribed": True,
-        "subscribed_at": utc_timestamp(),
+        "subscribed_at": gmt4_timestamp(),
         "opted_out": False,
     }
     save_subscriptions(subs)

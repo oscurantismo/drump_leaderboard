@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file, render_template_string
 import json, os
-from utils.timeutils import toronto_now
+from utils.timeutils import gmt4_now
 from werkzeug.utils import secure_filename
 from utils.logging import log_event
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -17,7 +17,7 @@ def auto_backup_subscriptions():
         return
 
     try:
-        timestamp = toronto_now().strftime("%Y%m%d-%H%M%S")
+        timestamp = gmt4_now().strftime("%Y%m%d-%H%M%S")
         backup_path = os.path.join(BACKUP_DIR, f"auto_daily_{timestamp}.json")
 
         with open(SUB_PATH, "r") as f:
@@ -160,7 +160,7 @@ def upload_subscription_backup():
 
         # Backup current
         if os.path.exists(SUB_PATH):
-            timestamp = toronto_now().strftime("%Y%m%d-%H%M%S")
+            timestamp = gmt4_now().strftime("%Y%m%d-%H%M%S")
             backup_path = os.path.join(BACKUP_DIR, f"auto_{timestamp}.json")
             with open(SUB_PATH, "r") as old:
                 with open(backup_path, "w") as bkp:
@@ -198,7 +198,7 @@ def restore_backup():
 
         # Backup current before restoring
         if os.path.exists(SUB_PATH):
-            timestamp = toronto_now().strftime("%Y%m%d-%H%M%S")
+            timestamp = gmt4_now().strftime("%Y%m%d-%H%M%S")
             with open(SUB_PATH, "r") as cur, open(os.path.join(BACKUP_DIR, f"auto_before_restore_{timestamp}.json"), "w") as bkp:
                 bkp.write(cur.read())
 

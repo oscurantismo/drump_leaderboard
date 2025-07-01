@@ -1,10 +1,10 @@
 import os
-from .timeutils import utc_timestamp
+from .timeutils import gmt4_timestamp
 
 LOG_FILE = "/app/data/logs.txt"
 
 def log_event(message):
-    timestamp = utc_timestamp()
+    timestamp = gmt4_timestamp()
     full = f"[{timestamp}] {message}"
     print(full)  # ✅ Railway console logs
     try:

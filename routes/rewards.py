@@ -11,7 +11,7 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, session
 from utils.logging import log_event  # ✅ Logging to logs.txt
 from utils import user_log_info
-from utils import utc_timestamp
+from utils import gmt4_timestamp
 
 rewards_bp = Blueprint("rewards", __name__)
 REWARDS_FILE = "/app/data/rewards.json"
@@ -89,7 +89,7 @@ def log_reward_event(
         return
 
     reward_entry = {
-        "timestamp": utc_timestamp(),
+        "timestamp": gmt4_timestamp(),
         "user_id": user_id,
         "username": username,
         "first_name": first_name,

@@ -1,20 +1,15 @@
 from __future__ import annotations
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone, timedelta
 
-TORONTO_TZ = ZoneInfo("America/Toronto")
-
-
-def toronto_now() -> datetime:
-    """Return current datetime in the Toronto timezone."""
-    return datetime.now(TORONTO_TZ)
+# Fixed GMT-4 timezone used across the app
+GMT4_TZ = timezone(timedelta(hours=-4))
 
 
-def utc_timestamp() -> str:
-    """Current timestamp in UTC derived from Toronto time."""
-    return (
-        toronto_now()
-        .astimezone(timezone.utc)
-        .isoformat(timespec="seconds")
-        .replace("+00:00", "Z")
-    )
+def gmt4_now() -> datetime:
+    """Return current datetime locked at GMT-4."""
+    return datetime.now(GMT4_TZ)
+
+
+def gmt4_timestamp() -> str:
+    """Current timestamp in GMT-4."""
+    return gmt4_now().isoformat(timespec="seconds")
