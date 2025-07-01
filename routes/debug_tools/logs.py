@@ -201,6 +201,7 @@ def debug_logs_content():
         "⚠️ Suspiciously fast tap",
         "✅ Successfully saved",
         "✅ Updated score",
+        "⚠️ Skipped file",
     ]
 
     lines = [
