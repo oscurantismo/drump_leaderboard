@@ -6,6 +6,10 @@ from datetime import datetime, timedelta
 from utils.timeutils import gmt4_now
 from utils.storage import BACKUP_FOLDER, backup_scores, SCORES_FILE, save_scores
 from utils.logging import log_event
+from pytz import timezone
+
+gmt4 = timezone("America/Toronto")
+mtime = datetime.fromtimestamp(os.path.getmtime(path), tz=gmt4)
 
 backup_routes = Blueprint("backup_routes", __name__)
 
