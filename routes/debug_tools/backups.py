@@ -9,7 +9,6 @@ from utils.logging import log_event
 from pytz import timezone
 
 gmt4 = timezone("America/Toronto")
-mtime = datetime.fromtimestamp(os.path.getmtime(path), tz=gmt4)
 
 backup_routes = Blueprint("backup_routes", __name__)
 
@@ -94,7 +93,7 @@ def view_backups():
             if filename.endswith(".json"):
                 path = os.path.join(BACKUP_FOLDER, filename)
                 try:
-                    mtime = datetime.fromtimestamp(os.path.getmtime(path))
+                    mtime = datetime.fromtimestamp(os.path.getmtime(path), tz=gmt4)
                     if mtime < cutoff:
                         os.remove(path)
                         continue
