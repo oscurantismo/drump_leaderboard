@@ -12,27 +12,23 @@ backup_routes = Blueprint("backup_routes", __name__)
 @backup_routes.route("/download-latest-backup", methods=["POST"])
 def download_latest_backup():
     try:
-        timestamp = gmt4_now().strftime("%Y%m%d_%H%M%S")
-        filename = f"leaderboard_backup_{timestamp}_manual.json"
         backup_scores(tag="manual")
         time.sleep(1)
-        return redirect(f"/download-backup?file={filename}")
+
+        # Find most recent _manual backup
+        matching = sorted([
+            f for f in os.listdir(BACKUP_FOLDER)
+            if f.endswith("_manual.json")
+        ], key=lambda f: os.path.getmtime(os.path.join(BACKUP_FOLDER, f)), reverse=True)
+
+        if not matching:
+            raise FileNotFoundError("No recent manual backup found")
+
+        return redirect(f"/download-backup?file={matching[0]}")
     except Exception as e:
         log_event(f"❌ Failed to create manual backup: {e}")
         return f"❌ Failed to create backup: {e}", 500
 
-@backup_routes.route("/upload-scores", methods=["POST"])
-def upload_scores():
-    try:
-        file = request.files.get("file")
-        if not file or not file.filename.endswith(".json"):
-            return "❌ Invalid file. Must be a .json file.", 400
-        scores_data = json.load(file)
-        save_scores(scores_data)
-        log_event("✅ Admin uploaded new scores.json")
-        return redirect("/backups")
-    except Exception as e:
-        return f"❌ Failed to upload scores: {e}", 500
 
 @backup_routes.route("/upload-backup", methods=["POST"])
 def upload_backup():
@@ -95,7 +91,11 @@ def view_backups():
                 path = os.path.join(BACKUP_FOLDER, filename)
                 try:
                     ts_str = filename.replace("leaderboard_backup_", "").replace(".json", "").replace("_manual", "")
-                    ts = datetime.strptime(ts_str, "%Y%m%d_%H%M%S")
+                    try:
+                        ts = datetime.strptime(ts_str, "%Y%m%d_%H%M%S_%f")
+                    except ValueError:
+                        ts = datetime.strptime(ts_str, "%Y%m%d_%H%M%S")
+
                     if ts < cutoff:
                         os.remove(path)
                         continue
