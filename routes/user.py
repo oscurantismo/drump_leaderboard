@@ -11,6 +11,7 @@ user_routes = Blueprint("user_routes", __name__)
 
 @user_routes.route("/register", methods=["POST"])
 def register():
+    data = request.get_json(force=True)
     username = normalize_username(data.get("username"))
     first_name = (data.get("first_name") or "").strip()
     last_name = (data.get("last_name") or "").strip()
