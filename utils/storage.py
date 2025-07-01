@@ -6,7 +6,7 @@ import threading
 import hashlib
 from datetime import datetime
 from .logging import log_event
-from .timeutils import toronto_now, utc_timestamp, TORONTO_TZ
+from .timeutils import gmt4_now, gmt4_timestamp
 
 SCORES_FILE = "/app/data/scores.json"
 BACKUP_FOLDER = "/app/data/backups"
@@ -156,7 +156,7 @@ def backup_scores(tag=None):
             log_event("🟡 Skipping backup — no changes since last snapshot.")
             return
 
-    timestamp = toronto_now().strftime("%Y%m%d_%H%M%S_%f")  # use microseconds
+    timestamp = gmt4_now().strftime("%Y%m%d_%H%M%S_%f")  # use microseconds
     suffix = f"_{tag}" if tag else ""
     backup_path = os.path.join(BACKUP_FOLDER, f"leaderboard_backup_{timestamp}{suffix}.json")
 

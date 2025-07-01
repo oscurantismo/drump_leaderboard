@@ -3,7 +3,7 @@ import os
 import json
 import time
 from datetime import datetime, timedelta
-from utils.timeutils import toronto_now
+from utils.timeutils import gmt4_now
 from utils.storage import BACKUP_FOLDER, backup_scores, SCORES_FILE, save_scores
 from utils.logging import log_event
 
@@ -12,7 +12,7 @@ backup_routes = Blueprint("backup_routes", __name__)
 @backup_routes.route("/download-latest-backup", methods=["POST"])
 def download_latest_backup():
     try:
-        timestamp = toronto_now().strftime("%Y%m%d_%H%M%S")
+        timestamp = gmt4_now().strftime("%Y%m%d_%H%M%S")
         filename = f"leaderboard_backup_{timestamp}_manual.json"
         backup_scores(tag="manual")
         time.sleep(1)
@@ -40,7 +40,7 @@ def upload_backup():
         file = request.files.get("file")
         if not file or not file.filename.endswith(".json"):
             return "❌ Invalid file.", 400
-        timestamp = toronto_now().strftime("%Y%m%d_%H%M%S")
+        timestamp = gmt4_now().strftime("%Y%m%d_%H%M%S")
         save_path = os.path.join(BACKUP_FOLDER, f"leaderboard_backup_{timestamp}.json")
         file.save(save_path)
         log_event(f"✅ Admin uploaded backup {save_path}")
@@ -87,7 +87,7 @@ def preview_backup():
 @backup_routes.route("/backups")
 def view_backups():
     try:
-        cutoff = toronto_now() - timedelta(weeks=3)
+        cutoff = gmt4_now() - timedelta(weeks=3)
         files = []
 
         for filename in os.listdir(BACKUP_FOLDER):
