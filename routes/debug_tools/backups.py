@@ -90,18 +90,14 @@ def view_backups():
             if filename.endswith(".json"):
                 path = os.path.join(BACKUP_FOLDER, filename)
                 try:
-                    ts_str = filename.replace("leaderboard_backup_", "").replace(".json", "").replace("_manual", "")
-                    try:
-                        ts = datetime.strptime(ts_str, "%Y%m%d_%H%M%S_%f")
-                    except ValueError:
-                        ts = datetime.strptime(ts_str, "%Y%m%d_%H%M%S")
-
-                    if ts < cutoff:
+                    mtime = datetime.fromtimestamp(os.path.getmtime(path))
+                    if mtime < cutoff:
                         os.remove(path)
                         continue
-                    files.append((ts, filename))
-                except Exception:
-                    continue
+                    files.append((mtime, filename))
+                except Exception as e:
+                    log_event(f"⚠️ Skipped file {filename} due to error: {e}")
+
 
         sorted_files = sorted(files, reverse=True)
 
